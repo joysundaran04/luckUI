@@ -1,0 +1,180 @@
+.book-management {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.book-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.book-header-actions h2 {
+    margin: 0;
+    font-size: 28px;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+}
+
+.book-header-actions p {
+    color: #64748b;
+    margin: 8px 0 0 0;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.search-input {
+    padding: 10px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s ease;
+    width: 160px;
+}
+
+.search-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.book-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: left;
+}
+
+.book-table th {
+    padding: 20px 24px;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #f1f5f9;
+    background: #fafaf9;
+}
+
+.book-table td {
+    padding: 18px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.book-table tr:last-child td {
+    border-bottom: none;
+}
+
+.book-table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.book-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.book-info-cell {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.book-avatar {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+}
+
+.book-name-text {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.agent-badge {
+    background: #eff6ff;
+    color: #3b82f6;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.unassigned-text {
+    color: #94a3b8;
+    font-style: italic;
+    font-size: 13px;
+}
+
+.draw-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.draw-badge.notdraw {
+    background: #f8fafc;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+}
+
+.draw-badge.winner,
+.draw-badge.won {
+    background: #fef3c7;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+
+.draw-badge.loser {
+    background: #fef2f2;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+}
+
+.book-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.wide-modal {
+    max-width: 600px !important;
+}
+
+/* Progress Cell */
+.progress-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100px;
+}
+
+.progress-text {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: #e2e8f0;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: #10b981;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
