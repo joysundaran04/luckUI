@@ -37,33 +37,6 @@ const mockSummary = {
     eligibleForDraw: false
 };
 
-const initialBooks: BookData[] = [
-    {
-        bookId: "69a2edc980ddc563215f435b",
-        bookNumber: "001",
-        name: "Thomas",
-        phone: "9876543210",
-        monthlyAmount: 500,
-        contributionStatus: "completed",
-        luckyDrawStatus: "Won",
-        wonDate: "2026-02-27T18:30:00.000Z",
-        agent: null,
-        summary: mockSummary,
-        payments: [...mockPayments]
-    },
-    {
-        bookId: "69a2edc980ddc563215f435c",
-        bookNumber: "002",
-        name: "Alice Smith",
-        phone: "9876543211",
-        monthlyAmount: 500,
-        contributionStatus: "Active",
-        luckyDrawStatus: "NotDraw",
-        agentId: { _id: "mock1", name: "Agent Smith" },
-        summary: { ...mockSummary, paidMonths: 5, remainingMonths: 5, totalPaidAmount: 2500, remainingAmount: 2500, eligibleForDraw: true },
-        payments: mockPayments.map(p => p.monthNumber <= 5 ? { ...p, paid: true, amount: 500 } : p)
-    }
-];
 
 const Book: React.FC = () => {
     const [books, setBooks] = useState<BookData[]>([]);
@@ -165,7 +138,7 @@ const Book: React.FC = () => {
 
         if (editingBook) {
             try {
-                const response: any = await BookService.updateBook(editingBook.bookId, {
+                 await BookService.updateBook(editingBook.bookId, {
                     ...formData,
                     contributionStatus: formData.contributionStatus,
                     agentId: formData.agentId || undefined
@@ -183,7 +156,7 @@ const Book: React.FC = () => {
             }
         } else {
             try {
-                const response: any = await BookService.createBook({
+                 await BookService.createBook({
                     bookNumber: formData.bookNumber,
                     name: formData.name,
                     phone: formData.phone,

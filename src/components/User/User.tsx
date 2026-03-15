@@ -78,7 +78,6 @@ const User: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            debugger;
             if (editingUser) {
                 await UserService.updateUser(editingUser._id, formData);
             } else {
