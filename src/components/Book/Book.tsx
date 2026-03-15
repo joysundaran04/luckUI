@@ -7,15 +7,6 @@ import AgentService from '../../services/AgentService';
 import Spinner from '../Spinner/Spinner';
 import './Book.css';
 
-interface Payment {
-    monthNumber: number;
-    paid: boolean;
-    amount: number;
-    _id: string;
-    paidDate?: string;
-}
-
-
 const Book: React.FC = () => {
     const [books, setBooks] = useState<BookData[]>([]);
     const [agents, setAgents] = useState<any[]>([]);
