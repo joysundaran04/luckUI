@@ -64,13 +64,10 @@ const Winners: React.FC = () => {
             </div>
 
             <div className="winners-container">
-                {loading ? (
-                    <div className="spinner-wrapper">
-                        <Spinner />
-                    </div>
-                ) : winners.length === 0 ? (
+                {loading && <Spinner />}
+                {!loading && winners.length === 0 ? (
                     <div className="glass-card empty-state">No winners yet.</div>
-                ) : (
+                ) : !loading && (
                     <>
                         <div className="month-tabs">
                             {monthsList.map(month => (

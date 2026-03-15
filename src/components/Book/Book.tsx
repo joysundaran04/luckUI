@@ -11,14 +11,17 @@ const Book: React.FC = () => {
     const [books, setBooks] = useState<BookData[]>([]);
     const [agents, setAgents] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const [searchName, setSearchName] = useState('');
-    const [searchPhone, setSearchPhone] = useState('');
-    const [searchBookNo, setSearchBookNo] = useState('');
+    const [searchText, setSearchText] = useState('');
+    const [searchType, setSearchType] = useState('searchName'); // searchName, searchPhone, searchBookNo
+    const [statusFilter, setStatusFilter] = useState(''); // Active, Discontinued, Won, etc.
     const [currentPage, setCurrentPage] = useState(1);
+    const [expandedBookId, setExpandedBookId] = useState<string | null>(null);
     const [totalPages, setTotalPages] = useState(1);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingBook, setEditingBook] = useState<BookData | null>(null);
     const [selectedBook, setSelectedBook] = useState<BookData | null>(null);
+    const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+    const [formError, setFormError] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         bookNumber: '',
@@ -34,10 +37,17 @@ const Book: React.FC = () => {
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            fetchBooks(currentPage, { searchName, searchPhone, searchBookNo });
+            const params: any = {};
+            if (searchText) {
+                params[searchType] = searchText;
+            }
+            if (statusFilter) {
+                params.status = statusFilter;
+            }
+            fetchBooks(currentPage, params);
         }, 300);
         return () => clearTimeout(timeoutId);
-    }, [currentPage, searchName, searchPhone, searchBookNo]);
+    }, [currentPage, searchText, searchType, statusFilter]);
 
     useEffect(() => {
         const fetchAgents = async () => {
@@ -53,14 +63,17 @@ const Book: React.FC = () => {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchName, searchPhone, searchBookNo]);
+    }, [searchText, searchType, statusFilter]);
 
-    const fetchBooks = async (page: number = 1, searchParams: { searchName?: string; searchPhone?: string; searchBookNo?: string } = {}) => {
+    const fetchBooks = async (page: number = 1, searchParams: { searchName?: string; searchPhone?: string; searchBookNo?: string; status?: string } = {}) => {
         try {
             setLoading(true);
             const response: any = await BookService.getBooks(page, 7, searchParams);
             console.log(response);
-            setBooks(response.data);
+            setBooks((response.data || []).map((b: any, index: number) => ({
+                ...b,
+                bookId: b.bookId || b._id || `temp-id-${index}-${Date.now()}`
+            })));
             setTotalPages(response.totalPages || 1);
 
         } catch (error) {
@@ -93,11 +106,25 @@ const Book: React.FC = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setEditingBook(null);
+        setFormError(null);
     };
 
     const handleDelete = (id: string) => {
-        if (window.confirm('Are you sure you want to delete this book?')) {
-            setBooks(books.filter(b => b.bookId !== id));
+        setDeleteConfirmId(id);
+    };
+
+    const executeDelete = async () => {
+        if (!deleteConfirmId) return;
+        try {
+            setLoading(true);
+            await BookService.deleteBook(deleteConfirmId);
+            fetchBooks(currentPage, { [searchType]: searchText, status: statusFilter });
+            setDeleteConfirmId(null);
+        } catch (error: any) {
+            console.error("Error deleting book:", error);
+            alert(error.response?.data?.message || 'Failed to delete book');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -105,9 +132,19 @@ const Book: React.FC = () => {
         e.preventDefault();
         const agentValue = editingBook ? (editingBook.agentId || editingBook.agent || null) : null;
 
+        if (formData.phone.length !== 10) {
+            setFormError('Phone number must be exactly 10 digits');
+            return;
+        }
+        if (formData.whatsappNumber && formData.whatsappNumber.length !== 10) {
+            setFormError('WhatsApp number must be exactly 10 digits');
+            return;
+        }
+        setFormError(null);
+
         if (editingBook) {
             try {
-                 await BookService.updateBook(editingBook.bookId, {
+                await BookService.updateBook(editingBook.bookId, {
                     ...formData,
                     contributionStatus: formData.contributionStatus,
                     agentId: formData.agentId || undefined
@@ -125,7 +162,7 @@ const Book: React.FC = () => {
             }
         } else {
             try {
-                 await BookService.createBook({
+                await BookService.createBook({
                     bookNumber: formData.bookNumber,
                     name: formData.name,
                     phone: formData.phone,
@@ -136,7 +173,7 @@ const Book: React.FC = () => {
                 });
 
                 handleCloseModal();
-                fetchBooks(currentPage, { searchName, searchPhone, searchBookNo });
+                fetchBooks(currentPage, { [searchType]: searchText, status: statusFilter });
             } catch (error: any) {
                 console.error("Error creating book:", error);
                 alert(error.response?.data?.message || 'Failed to create book');
@@ -145,20 +182,17 @@ const Book: React.FC = () => {
     };
 
     const togglePayment = (bookId: string, monthNumber: number) => {
-        fetchBooks(currentPage, { searchName, searchPhone, searchBookNo });
+        fetchBooks(currentPage, { [searchType]: searchText, status: statusFilter });
     };
 
     const handlePrizeUpdate = (bookId: string, data: { luckyDrawStatus: string; wonDate?: string; wonMonth?: number; prizeNumber?: string; prizeDistributionStatus?: string }) => {
-        fetchBooks(currentPage, { searchName, searchPhone, searchBookNo });
+        fetchBooks(currentPage, { [searchType]: searchText, status: statusFilter });
     };
 
-    // const filteredBooks = books.filter(book => {
-    //     const matchName = book.name ? book.name.toLowerCase().includes(searchName.toLowerCase()) : true;
-    //     const matchPhone = book.phone ? book.phone.toLowerCase().includes(searchPhone.toLowerCase()) : true;
-    //     const matchBookNo = book.bookNumber ? book.bookNumber.toLowerCase().includes(searchBookNo.toLowerCase()) : true;
+    const toggleAccordion = (bookId: string) => {
+        setExpandedBookId(expandedBookId === bookId ? null : bookId);
+    };
 
-    //     return matchName && matchPhone && matchBookNo;
-    // });
 
     // Render the Edit modal (shared between list and detail view)
     const renderModal = (title: string) => (
@@ -166,11 +200,20 @@ const Book: React.FC = () => {
             <div className="modal-overlay">
                 <div className="modal-content glass-card wide-modal">
                     <h3>{title}</h3>
+                    {formError && <div className="form-error-message">{formError}</div>}
                     <form onSubmit={handleSubmit} className="book-form">
                         <div className="form-row">
                             <div className="input-group">
                                 <label>Book Number</label>
-                                <input type="text" value={formData.bookNumber} onChange={e => setFormData({ ...formData, bookNumber: e.target.value })} required />
+                                <input
+                                    type="text"
+                                    value={formData.bookNumber}
+                                    onChange={e => {
+                                        const val = e.target.value.replace(/\D/g, '');
+                                        setFormData({ ...formData, bookNumber: val });
+                                    }}
+                                    required
+                                />
                             </div>
                         </div>
                         <div className="form-row">
@@ -180,7 +223,16 @@ const Book: React.FC = () => {
                             </div>
                             <div className="input-group">
                                 <label>Phone Number</label>
-                                <input type="tel" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} required />
+                                <input
+                                    type="tel"
+                                    value={formData.phone}
+                                    onChange={e => {
+                                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                        setFormData({ ...formData, phone: val });
+                                    }}
+                                    placeholder="10-digit mobile number"
+                                    required
+                                />
                             </div>
                         </div>
                         <div className="form-row">
@@ -197,7 +249,15 @@ const Book: React.FC = () => {
                         <div className="form-row">
                             <div className="input-group">
                                 <label>WhatsApp Number</label>
-                                <input type="tel" value={formData.whatsappNumber} onChange={e => setFormData({ ...formData, whatsappNumber: e.target.value })} />
+                                <input
+                                    type="tel"
+                                    value={formData.whatsappNumber}
+                                    onChange={e => {
+                                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                        setFormData({ ...formData, whatsappNumber: val });
+                                    }}
+                                    placeholder="10-digit WhatsApp number"
+                                />
                             </div>
                             <div className="input-group">
                                 <label>Address</label>
@@ -219,6 +279,27 @@ const Book: React.FC = () => {
                             <button type="submit" className="btn-primary">{editingBook ? 'Save Changes' : 'Create Book'}</button>
                         </div>
                     </form>
+                </div>
+            </div>,
+            document.body
+        )
+    );
+
+    const renderDeleteModal = () => (
+        deleteConfirmId && createPortal(
+            <div className="modal-overlay">
+                <div className="modal-content glass-card delete-modal">
+                    <div className="delete-icon">🗑️</div>
+                    <div className="delete-text">
+                        <h3>Delete Book?</h3>
+                        <p>This action cannot be undone. All payment records for this book will be permanently removed.</p>
+                    </div>
+                    <div className="modal-actions full-width">
+                        <button className="btn-secondary" onClick={() => setDeleteConfirmId(null)}>Cancel</button>
+                        <button className="btn-danger" onClick={executeDelete}>
+                            {loading ? <Spinner /> : 'Delete Confirm'}
+                        </button>
+                    </div>
                 </div>
             </div>,
             document.body
@@ -250,34 +331,51 @@ const Book: React.FC = () => {
                     <h2>Book Management</h2>
                 </div>
                 <div className="header-controls">
-                    <input
-                        type="text"
-                        placeholder="Search Name..."
-                        className="search-input"
-                        value={searchName}
-                        onChange={(e) => setSearchName(e.target.value)}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Search Phone..."
-                        className="search-input"
-                        value={searchPhone}
-                        onChange={(e) => setSearchPhone(e.target.value)}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Search Book No..."
-                        className="search-input"
-                        value={searchBookNo}
-                        onChange={(e) => setSearchBookNo(e.target.value)}
-                    />
-                    <button className="btn-primary" onClick={() => handleOpenModal()}>
-                        + Add New Book
-                    </button>
+                    <div className="filter-group">
+                        <label className="filter-label">Search By</label>
+                        <div className="search-group">
+                            <select
+                                className="search-type-select"
+                                value={searchType}
+                                onChange={(e) => setSearchType(e.target.value)}
+                            >
+                                <option value="searchName">Name</option>
+                                <option value="searchPhone">Phone</option>
+                                <option value="searchBookNo">Book No</option>
+                            </select>
+                            <input
+                                type="text"
+                                placeholder="Type to search..."
+                                className="search-input"
+                                value={searchText}
+                                onChange={(e) => setSearchText(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="filter-group">
+                        <label className="filter-label">Book Status</label>
+                        <select
+                            className="status-filter-select"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <option value="">All Statuses</option>
+                            <option value="Active">Active</option>
+                            <option value="Discontinued">Discontinued</option>
+                            <option value="Won">Won</option>
+                        </select>
+                    </div>
+
+                    <div className="header-button-group">
+                        <button className="btn-primary add-book-btn" onClick={() => handleOpenModal()}>
+                            <span>+</span> Add New Book
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div className="glass-card table-container">
+            <div className="glass-card table-container desktop-only">
                 <table className="book-table">
                     <thead>
                         <tr>
@@ -293,13 +391,13 @@ const Book: React.FC = () => {
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan={6} style={{ padding: '2rem 0' }}>
+                                <td colSpan={7} style={{ padding: '2rem 0' }}>
                                     <Spinner />
                                 </td>
                             </tr>
                         ) : books.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="empty-state">No books found.</td>
+                                <td colSpan={7} className="empty-state">No books found.</td>
                             </tr>
                         ) : (
                             books.map(book => (
@@ -348,6 +446,75 @@ const Book: React.FC = () => {
                 </table>
             </div>
 
+            {/* Mobile View (Accordion Style) */}
+            <div className="mobile-only mobile-book-list">
+                {loading ? (
+                    <div className="mobile-loading">
+                        <Spinner />
+                    </div>
+                ) : books.length === 0 ? (
+                    <div className="empty-state">No books found.</div>
+                ) : (
+                    books.map(book => (
+                        <div
+                            key={book.bookId}
+                            className={`book-accordion-item ${expandedBookId === book.bookId ? 'expanded' : ''}`}
+                        >
+                            <div className="accordion-header">
+                                <div className="header-main-info" onClick={() => setSelectedBook(book)}>
+                                    <div className="avatar-small book-avatar">{book.name.charAt(0)}</div>
+                                    <div className="name-details">
+                                        <span className="customer-name">{book.name}</span>
+                                        <span className="book-number">#{book.bookNumber}</span>
+                                    </div>
+                                </div>
+                                <div className="header-status-info" onClick={(e) => { e.stopPropagation(); toggleAccordion(book.bookId); }}>
+                                    <span className={`draw-badge ${book.luckyDrawStatus.toLowerCase()}`}>
+                                        {book.luckyDrawStatus}
+                                    </span>
+                                    <span className="chevron"></span>
+                                </div>
+                            </div>
+
+                            <div className="accordion-content">
+                                <div className="detail-row">
+                                    <span className="label">Phone:</span>
+                                    <span className="value">{book.phone}</span>
+                                </div>
+                                <div className="detail-row">
+                                    <span className="label">Agent:</span>
+                                    <span className="value">
+                                        {book.agentId ? (typeof book.agentId === 'object' ? (book.agentId as any).name : book.agentId) : '—'}
+                                    </span>
+                                </div>
+                                <div className="detail-row">
+                                    <span className="label">Paid/Total:</span>
+                                    <div className="value">
+                                        <div className="progress-cell">
+                                            <span className="progress-text">{book?.summary?.paidMonths || 0} / {book?.summary?.totalMonths || 0}</span>
+                                            <div className="progress-bar-bg">
+                                                <div className="progress-bar-fill" style={{ width: `${((book?.summary?.paidMonths || 0) / (book?.summary?.totalMonths || 1)) * 100}%` }}></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="accordion-actions">
+                                    <button className="btn-mobile-action view" onClick={() => setSelectedBook(book)}>
+                                        View Details
+                                    </button>
+                                    <button className="btn-mobile-action edit" onClick={() => handleOpenModal(book)}>
+                                        Edit
+                                    </button>
+                                    <button className="btn-mobile-action delete" onClick={() => handleDelete(book.bookId)}>
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+
             {totalPages > 1 && (
                 <div className="pagination-controls">
                     <button
@@ -381,6 +548,7 @@ const Book: React.FC = () => {
             )}
 
             {renderModal(editingBook ? 'Edit Book' : 'Add New Book')}
+            {renderDeleteModal()}
         </div>
     );
 };

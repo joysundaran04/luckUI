@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import UserService from '../../services/UserService';
+import Spinner from '../Spinner/Spinner';
 import './User.css';
 
 interface UserData {
@@ -49,10 +50,10 @@ const User: React.FC = () => {
         if (user) {
             setEditingUser(user);
             setFormData({
-                name: user.name,
-                userName: user.userName,
-                password: user.password || '',
-                role: user.role
+                name: user.name || user.userName || '',
+                userName: user.userName || '',
+                password: '',
+                role: user.role || 'User'
             });
         } else {
             setEditingUser(null);
@@ -66,34 +67,46 @@ const User: React.FC = () => {
         setEditingUser(null);
     };
 
-    const handleDelete = async (id: number) => {
-        if (window.confirm('Are you sure you want to delete this user?')) {
-            try {
-                await UserService.deleteUser(id);
-                fetchUsers();
-            } catch (err: any) {
-                alert(err.response?.data?.message || 'Failed to delete user');
-            }
+    const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
+
+    const handleDelete = (id: number) => {
+        setDeleteUserId(id);
+    };
+
+    const executeDelete = async () => {
+        if (deleteUserId === null) return;
+        try {
+            setLoading(true);
+            await UserService.deleteUser(deleteUserId);
+            await fetchUsers();
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Failed to delete user');
+            setLoading(false);
+        } finally {
+            setDeleteUserId(null);
         }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            setLoading(true);
             if (editingUser) {
                 await UserService.updateUser(editingUser._id, formData);
             } else {
                 await UserService.createUser(formData);
             }
             handleCloseModal();
-            fetchUsers();
+            await fetchUsers();
         } catch (err: any) {
             alert(err.response?.data?.message || 'Something went wrong');
+            setLoading(false);
         }
     };
 
     return (
         <div className="user-management fade-in-up">
+            {loading && <Spinner />}
             <div className="user-header-actions">
                 <div>
                     <h2>User Management</h2>
@@ -211,6 +224,25 @@ const User: React.FC = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {deleteUserId !== null && createPortal(
+                <div className="modal-overlay">
+                    <div className="modal-content glass-card confirm-modal" style={{ maxWidth: '420px' }}>
+                        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                            <div style={{ fontSize: '48px', marginBottom: '12px' }}>⚠️</div>
+                            <h3 style={{ margin: '0 0 10px' }}>Delete User</h3>
+                            <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>
+                                Are you sure you want to delete <strong>{users.find(u => u._id === deleteUserId)?.userName}</strong>? This action cannot be undone.
+                            </p>
+                        </div>
+                        <div className="modal-actions" style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+                            <button type="button" className="btn-secondary" onClick={() => setDeleteUserId(null)}>Cancel</button>
+                            <button type="button" className="btn-primary" style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }} onClick={executeDelete}>Delete</button>
+                        </div>
                     </div>
                 </div>,
                 document.body

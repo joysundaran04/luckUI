@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import AgentService from '../../services/AgentService';
+import Spinner from '../Spinner/Spinner';
 import './Agent.css';
 
 interface AgentData {
@@ -64,34 +65,50 @@ const Agent: React.FC = () => {
         setFormData({ name: '', place: '', mobileNumber: '' });
     };
 
-    const handleDelete = async (id: string) => {
-        if (window.confirm('Are you sure you want to delete this agent?')) {
-            try {
-                await AgentService.deleteAgent(id);
-                fetchAgents();
-            } catch (err: any) {
-                alert(err.response?.data?.message || 'Failed to delete agent');
-            }
+    const [deleteAgentId, setDeleteAgentId] = useState<string | null>(null);
+
+    const handleDelete = (id: string) => {
+        setDeleteAgentId(id);
+    };
+
+    const executeDelete = async () => {
+        if (!deleteAgentId) return;
+        try {
+            setLoading(true);
+            await AgentService.deleteAgent(deleteAgentId);
+            fetchAgents();
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Failed to delete agent');
+        } finally {
+            setLoading(false);
+            setDeleteAgentId(null);
         }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            if (!/^\d{10}$/.test(formData.mobileNumber)) {
+                alert('Please enter a valid 10-digit mobile number');
+                return;
+            }
+            setLoading(true);
             if (editingAgent) {
                 await AgentService.updateAgent(editingAgent._id, formData);
             } else {
                 await AgentService.createAgent(formData);
             }
             handleCloseModal();
-            fetchAgents();
+            await fetchAgents();
         } catch (err: any) {
             alert(err.response?.data?.message || 'Something went wrong');
+            setLoading(false);
         }
     };
 
     return (
         <div className="agent-management fade-in-up">
+            {loading && <Spinner />}
             <div className="agent-header-actions">
                 <div>
                     <h2>Agent Management</h2>
@@ -184,10 +201,20 @@ const Agent: React.FC = () => {
                                 <input
                                     type="tel"
                                     value={formData.mobileNumber}
-                                    onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })}
+                                    onChange={e => {
+                                        const val = e.target.value.replace(/\D/g, '');
+                                        if (val.length <= 10) setFormData({ ...formData, mobileNumber: val });
+                                    }}
                                     required
-                                    placeholder="Enter mobile number"
+                                    placeholder="Enter 10-digit mobile number"
+                                    maxLength={10}
+                                    pattern="[0-9]{10}"
                                 />
+                                {formData.mobileNumber && formData.mobileNumber.length < 10 && (
+                                    <span style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
+                                        {10 - formData.mobileNumber.length} digits remaining
+                                    </span>
+                                )}
                             </div>
 
                             <div className="modal-actions">
@@ -199,6 +226,25 @@ const Agent: React.FC = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {deleteAgentId !== null && createPortal(
+                <div className="modal-overlay">
+                    <div className="modal-content glass-card confirm-modal" style={{ maxWidth: '420px' }}>
+                        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                            <div style={{ fontSize: '48px', marginBottom: '12px' }}>⚠️</div>
+                            <h3 style={{ margin: '0 0 10px' }}>Delete Agent</h3>
+                            <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>
+                                Are you sure you want to delete <strong>{agents.find(a => a._id === deleteAgentId)?.name}</strong>? This action cannot be undone.
+                            </p>
+                        </div>
+                        <div className="modal-actions" style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+                            <button type="button" className="btn-secondary" onClick={() => setDeleteAgentId(null)}>Cancel</button>
+                            <button type="button" className="btn-primary" style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }} onClick={executeDelete}>Delete</button>
+                        </div>
                     </div>
                 </div>,
                 document.body

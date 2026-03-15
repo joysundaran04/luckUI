@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL =  'http://localhost:5000/api';
 
 const BookService = {
     // Get all books
-    getBooks: async (page: number = 1, limit: number = 10, searchParams: { searchName?: string; searchPhone?: string; searchBookNo?: string } = {}) => {
+    getBooks: async (page: number = 1, limit: number = 10, searchParams: { searchName?: string; searchPhone?: string; searchBookNo?: string; status?: string } = {}) => {
         const response = await axios.get(`${API_URL}/book/books`, {
             params: { page, limit, ...searchParams }
         });
@@ -31,7 +31,7 @@ const BookService = {
 
     // Delete a book
     deleteBook: async (bookId: string) => {
-        await axios.delete(`${API_URL}/books/${bookId}`);
+        await axios.delete(`${API_URL}/book/${bookId}`);
     },
 
     // Update a payment for a specific month
