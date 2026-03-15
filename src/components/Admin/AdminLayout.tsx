@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from '../Sidebar/Sidebar';
 import User from '../User/User';
@@ -12,6 +12,7 @@ import './AdminLayout.css';
 const AdminLayout: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
     const handleLogout = () => {
         navigate('/');
@@ -23,11 +24,29 @@ const AdminLayout: React.FC = () => {
 
     return (
         <div className="admin-layout">
-            <Sidebar onLogout={handleLogout} activeItem={activeItem} setActiveItem={(item) => navigate(`/admin/${item}`)} />
+            <Sidebar 
+                onLogout={handleLogout} 
+                activeItem={activeItem} 
+                setActiveItem={(item) => {
+                    navigate(`/admin/${item}`);
+                    setIsMobileSidebarOpen(false);
+                }}
+                isMobileOpen={isMobileSidebarOpen}
+                onCloseMobile={() => setIsMobileSidebarOpen(false)}
+            />
 
             <main className="admin-main">
                 <header className="admin-header">
-                    <h1>{activeItem.charAt(0).toUpperCase() + activeItem.slice(1)}</h1>
+                    <div className="header-left">
+                        <button 
+                            className="mobile-menu-toggle" 
+                            onClick={() => setIsMobileSidebarOpen(true)}
+                            aria-label="Open Menu"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        </button>
+                        <h1>{activeItem.charAt(0).toUpperCase() + activeItem.slice(1)}</h1>
+                    </div>
                     <div className="admin-user-profile">
                         <span className="user-avatar">{(localStorage.getItem('userName') || 'AD').substring(0, 2).toUpperCase()}</span>
                         <span className="user-name">{localStorage.getItem('userName') || 'Admin'}</span>

@@ -25,7 +25,7 @@ const BookService = {
 
     // Update an existing book
     updateBook: async (bookId: string, data: any) => {
-        const response = await axios.put(`${API_URL}/books/${bookId}`, data);
+        const response = await axios.put(`${API_URL}/book/${bookId}`, data);
         return response.data;
     },
 

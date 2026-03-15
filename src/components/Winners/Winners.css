@@ -167,3 +167,69 @@
     font-style: italic;
     font-size: 13px;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .winners-header-actions {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .winners-header-actions h2 {
+        font-size: 22px;
+    }
+
+    .month-tabs {
+        padding-bottom: 8px;
+    }
+
+    .month-tab {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+
+    .month-group {
+        padding: 16px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .books-table {
+        min-width: 100%;
+    }
+
+    .books-table th,
+    .books-table td {
+        padding: 12px 8px;
+        font-size: 11px;
+    }
+
+    .books-table th {
+        font-size: 10px;
+        letter-spacing: 0;
+    }
+
+    .avatar-small {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .book-name-cell {
+        gap: 8px;
+    }
+
+    .book-id-badge {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+
+    .prize-value {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+}

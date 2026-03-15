@@ -365,21 +365,25 @@
 }
 
 .danger-btn {
-    background: #fef2f2;
-    color: #ef4444;
-    border: 1px solid #fecaca;
-    padding: 8px 16px;
-    border-radius: 10px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     width: auto;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .danger-btn:hover {
-    background: #fee2e2;
-    border-color: #f87171;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.35);
 }
 
 /* Prize Update Button */
@@ -624,4 +628,143 @@
 .btn-prize-submit:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(245, 158, 11, 0.35);
+}
+
+/* Premium Enhancements & Mobile Responsiveness */
+.book-details-card {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0,0,0,0.02);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+}
+
+.prize-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+@media (max-width: 768px) {
+    .book-details-card {
+        padding: 20px;
+        gap: 20px;
+    }
+
+    .book-header-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .details-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .details-actions button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .details-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 16px;
+    }
+
+    .winner-badge {
+        position: static;
+        transform: none;
+        width: 100%;
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    .details-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .detail-item {
+        background: #f8fafc;
+        padding: 12px 16px;
+        border-radius: 12px;
+        align-items: center;
+        text-align: center;
+    }
+
+    .prize-info-grid, .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .payment-row {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 14px;
+    }
+
+    .payment-month, .payment-amount, .payment-date, .payment-action {
+        width: 100%;
+    }
+
+    .payment-action button {
+        width: 100%;
+    }
+
+    .payment-amount {
+        font-size: 20px;
+    }
+
+    /* Prize Modal Mobile */
+    .prize-form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .prize-modal-header {
+        flex-direction: column;
+        text-align: center;
+        padding-top: 32px;
+    }
+
+    .prize-close-btn {
+        top: 12px;
+        right: 12px;
+        transform: none;
+    }
+
+    .detail-label {
+        font-size: 11px;
+    }
+
+    .detail-value {
+        font-size: 14px;
+    }
+
+    .summary-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+    }
+
+    .summary-label {
+        font-size: 11px;
+    }
+
+    .summary-value {
+        font-size: 16px;
+    }
+
+    .prize-info-card {
+        padding: 12px;
+    }
+
+    .prize-info-label {
+        font-size: 10px;
+    }
+
+    .prize-info-value {
+        font-size: 14px;
+    }
 }

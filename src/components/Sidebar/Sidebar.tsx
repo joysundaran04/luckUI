@@ -19,9 +19,11 @@ interface SidebarProps {
     onLogout: () => void;
     activeItem: string;
     setActiveItem: (item: string) => void;
+    isMobileOpen?: boolean;
+    onCloseMobile?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ onLogout, activeItem, setActiveItem }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onLogout, activeItem, setActiveItem, isMobileOpen = false, onCloseMobile }) => {
     const [collapsed, setCollapsed] = useState(false);
     const isAdmin = UserService.isAdmin();
 
@@ -36,8 +38,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, activeItem, setActiveItem }
     const menuItems = allMenuItems.filter(item => !item.adminOnly || isAdmin);
 
     return (
-        <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
-            <div className="sidebar-header">
+        <>
+            {isMobileOpen && <div className="sidebar-overlay" onClick={onCloseMobile}></div>}
+            <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''}`}>
+                <div className="sidebar-header">
                 <div className="logo-container">
                     <div className="logo-icon">✨</div>
                     {!collapsed && <span className="logo-text">LuckyDraw</span>}
@@ -71,6 +75,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, activeItem, setActiveItem }
                 </button>
             </div>
         </aside>
+        </>
     );
 };
 

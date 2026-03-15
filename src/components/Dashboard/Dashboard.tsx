@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './Dashboard.css';
 import DashboardService from '../../services/DashboardService';
+import Spinner from '../Spinner/Spinner';
 
 // Using simple SVG icons for a beautiful modern aesthetic
 const icons = {
@@ -61,25 +62,18 @@ const Dashboard: React.FC = () => {
         { id: 10, title: 'Price', value: `₹${stats.price}`, icon: icons.tag, color: '#84cc16', bg: '#f7fee7' },
     ];
 
-    if (loading) {
-        return (
-            <div className="dashboard-container fade-in-up" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-                <p>Loading Dashboard...</p>
-            </div>
-        );
-    }
-
     return (
         <div className="dashboard-container fade-in-up">
+            {loading && <Spinner />}
             <div className="dashboard-header-modern">
                 <div className="title-section">
-                    <h2>Welcome back, Admin 👋</h2>
+                    <h2>Welcome back, {localStorage.getItem('userName') || 'Admin'} 👋</h2>
                     <p>Here's what's happening with your LuckyDraw campaigns today.</p>
                 </div>
-                <div className="quick-actions">
+                {/* <div className="quick-actions">
                     <button className="btn-secondary">Export Report</button>
                     <button className="btn-primary">+ New Campaign</button>
-                </div>
+                </div> */}
             </div>
 
             <div className="glass-card-transparent">

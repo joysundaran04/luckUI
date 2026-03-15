@@ -36,16 +36,11 @@ const Login: React.FC = () => {
         }
     };
 
-    if (isLoading) {
-        return (
-            <div className="login-container">
-                <Spinner />
-            </div>
-        );
-    }
+
 
     return (
         <div className="login-container fade-in">
+            {isLoading && <Spinner />}
             <div className="login-box transparent-glass">
                 <div className="login-header">
                     <h2>Lucky Draw</h2>

@@ -183,3 +183,46 @@
 .sidebar.collapsed .logout-btn {
     justify-content: center;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 260px;
+        height: 100vh;
+        z-index: 1000;
+        transition: left 0.3s ease;
+    }
+    
+    .sidebar.mobile-open {
+        left: 0;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar.collapsed {
+        width: 260px; /* Disable collapsing on mobile, it's either open or closed */
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(15, 23, 42, 0.4);
+        z-index: 999;
+        backdrop-filter: blur(4px);
+        animation: fadeIn 0.3s ease forwards;
+    }
+    
+    .sidebar-header .toggle-btn {
+        display: none; /* Hide toggle button on mobile inside the sidebar */
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

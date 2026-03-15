@@ -346,39 +346,39 @@ const Book: React.FC = () => {
                         )}
                     </tbody>
                 </table>
-
-                {totalPages > 1 && (
-                    <div className="pagination-controls">
-                        <button
-                            className="btn-pagination"
-                            disabled={currentPage === 1}
-                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        >
-                            ← Prev
-                        </button>
-
-                        <div className="page-numbers">
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                                <button
-                                    key={page}
-                                    className={`btn-page ${currentPage === page ? 'active' : ''}`}
-                                    onClick={() => setCurrentPage(page)}
-                                >
-                                    {page}
-                                </button>
-                            ))}
-                        </div>
-
-                        <button
-                            className="btn-pagination"
-                            disabled={currentPage === totalPages}
-                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        >
-                            Next →
-                        </button>
-                    </div>
-                )}
             </div>
+
+            {totalPages > 1 && (
+                <div className="pagination-controls">
+                    <button
+                        className="btn-pagination"
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    >
+                        ← Prev
+                    </button>
+
+                    <div className="page-numbers">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                            <button
+                                key={page}
+                                className={`btn-page ${currentPage === page ? 'active' : ''}`}
+                                onClick={() => setCurrentPage(page)}
+                            >
+                                {page}
+                            </button>
+                        ))}
+                    </div>
+
+                    <button
+                        className="btn-pagination"
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    >
+                        Next →
+                    </button>
+                </div>
+            )}
 
             {renderModal(editingBook ? 'Edit Book' : 'Add New Book')}
         </div>
