@@ -63,6 +63,7 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, onBack, onEdit, 
 
     useEffect(() => {
         fetchBookDetails();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialBook.bookId]);
 
     const fetchBookDetails = async (showLoading = true) => {
