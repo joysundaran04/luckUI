@@ -59,7 +59,7 @@ const Winners: React.FC = () => {
             <div className="winners-header-actions">
                 <div>
                     <h2>🏆 Monthly Winners</h2>
-                    <p className="subtitle">All the lucky winners so far</p>
+                    {/* <p className="subtitle">All the lucky winners so far</p> */}
                 </div>
             </div>
 
