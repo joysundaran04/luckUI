@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Routes, Route, Navigate } from 'react-router-
 import Sidebar from '../Sidebar/Sidebar';
 import User from '../User/User';
 import Book from '../Book/Book';
+import Agent from '../Agent/Agent';
 import Dashboard from '../Dashboard/Dashboard';
 import Winners from '../Winners/Winners';
 import Footer from '../Footer/Footer';
@@ -38,6 +39,7 @@ const AdminLayout: React.FC = () => {
                         <Routes>
                             <Route path="dashboard" element={<Dashboard />} />
                             <Route path="users" element={<User />} />
+                            <Route path="agent" element={<Agent />} />
                             <Route path="book" element={<Book />} />
                             <Route path="winners" element={<Winners />} />
                             <Route path="/" element={<Navigate to="dashboard" replace />} />

@@ -1,0 +1,152 @@
+.agent-management {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.agent-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+.agent-header-actions h2 {
+    margin: 0;
+    color: #1a1a2e;
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.agent-info-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar-small {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.agent-name-text {
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.table-container {
+    overflow-x: auto;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 0;
+}
+
+.agent-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.agent-table th,
+.agent-table td {
+    padding: 1.25rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.agent-table th {
+    background: rgba(248, 250, 252, 0.8);
+    color: #4a5568;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(5px);
+    position: sticky;
+    top: 0;
+}
+
+.agent-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.agent-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem !important;
+    color: #a0aec0;
+    font-style: italic;
+}
+
+/* Actions */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1.2rem;
+}
+
+.btn-icon.edit {
+    background: rgba(66, 153, 225, 0.1);
+    color: #4299e1;
+}
+
+.btn-icon.edit:hover {
+    background: #4299e1;
+    color: white;
+}
+
+.btn-icon.delete {
+    background: rgba(245, 101, 101, 0.1);
+    color: #f56565;
+}
+
+.btn-icon.delete:hover {
+    background: #f56565;
+    color: white;
+}
+
+/* Modal Form Styles */
+.agent-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.error-message {
+    background: rgba(245, 101, 101, 0.1);
+    color: #f56565;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(245, 101, 101, 0.2);
+}

@@ -35,7 +35,8 @@ export interface BookData {
     wonMonth?: number;
     prizeNumber?: string;
     prizeDistributionStatus?: string;
-    agent: string | null;
+    agent?: { _id: string; name: string; phone: string; mobileNumber?: string } | null;
+    agentId?: { _id: string; name: string } | string | null;
     summary: Summary;
     payments: Payment[];
 }
@@ -317,6 +318,17 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, onBack, onEdit, 
                     <div className="detail-item">
                         <span className="detail-label">WhatsApp Number</span>
                         <span className="detail-value">{book.whatsappNumber || '—'}</span>
+                    </div>
+                    <div className="detail-item">
+                        <span className="detail-label">Agent</span>
+                        <span className="detail-value">
+                            {book.agent ? (
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <span>{book.agent.name}</span>
+                                    <span style={{ fontSize: '0.8rem', color: '#718096' }}>{book.agent.phone}</span>
+                                </div>
+                            ) : '—'}
+                        </span>
                     </div>
                     <div className="detail-item">
                         <span className="detail-label">Address</span>

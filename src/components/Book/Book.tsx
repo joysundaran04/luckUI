@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import ViewBook from './ViewBook';
 import type { BookData } from './ViewBook';
 import BookService from '../../services/BookService';
+import AgentService from '../../services/AgentService';
 import Spinner from '../Spinner/Spinner';
 import './Book.css';
 
@@ -58,7 +59,7 @@ const initialBooks: BookData[] = [
         monthlyAmount: 500,
         contributionStatus: "Active",
         luckyDrawStatus: "NotDraw",
-        agent: "Agent Smith",
+        agentId: { _id: "mock1", name: "Agent Smith" },
         summary: { ...mockSummary, paidMonths: 5, remainingMonths: 5, totalPaidAmount: 2500, remainingAmount: 2500, eligibleForDraw: true },
         payments: mockPayments.map(p => p.monthNumber <= 5 ? { ...p, paid: true, amount: 500 } : p)
     }
@@ -66,6 +67,7 @@ const initialBooks: BookData[] = [
 
 const Book: React.FC = () => {
     const [books, setBooks] = useState<BookData[]>([]);
+    const [agents, setAgents] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchName, setSearchName] = useState('');
     const [searchPhone, setSearchPhone] = useState('');
@@ -85,6 +87,7 @@ const Book: React.FC = () => {
         monthlyAmount: 500,
         contributionStatus: 'Active',
         luckyDrawStatus: 'NotDraw',
+        agentId: '',
     });
 
     useEffect(() => {
@@ -95,13 +98,25 @@ const Book: React.FC = () => {
     }, [currentPage, searchName, searchPhone, searchBookNo]);
 
     useEffect(() => {
+        const fetchAgents = async () => {
+            try {
+                const response = await AgentService.getAgents();
+                setAgents(response.data || []);
+            } catch (err) {
+                console.error("Failed to fetch agents", err);
+            }
+        };
+        fetchAgents();
+    }, []);
+
+    useEffect(() => {
         setCurrentPage(1);
     }, [searchName, searchPhone, searchBookNo]);
 
     const fetchBooks = async (page: number = 1, searchParams: { searchName?: string; searchPhone?: string; searchBookNo?: string } = {}) => {
         try {
             setLoading(true);
-            const response: any = await BookService.getBooks(page, 10, searchParams);
+            const response: any = await BookService.getBooks(page, 7, searchParams);
             console.log(response);
             setBooks(response.data);
             setTotalPages(response.totalPages || 1);
@@ -124,10 +139,11 @@ const Book: React.FC = () => {
                 monthlyAmount: book.monthlyAmount,
                 contributionStatus: book.contributionStatus,
                 luckyDrawStatus: book.luckyDrawStatus,
+                agentId: book.agentId ? (typeof book.agentId === 'object' ? (book.agentId as any)._id : book.agentId) : (book.agent ? (typeof book.agent === 'object' ? (book.agent as any)._id : book.agent) : ''),
             });
         } else {
             setEditingBook(null);
-            setFormData({ bookNumber: '', name: '', phone: '', whatsappNumber: '', address: '', monthlyAmount: 500, contributionStatus: 'Active', luckyDrawStatus: 'NotDraw' });
+            setFormData({ bookNumber: '', name: '', phone: '', whatsappNumber: '', address: '', monthlyAmount: 500, contributionStatus: 'Active', luckyDrawStatus: 'NotDraw', agentId: '' });
         }
         setIsModalOpen(true);
     };
@@ -145,27 +161,37 @@ const Book: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const agentValue = editingBook ? editingBook.agent : null;
+        const agentValue = editingBook ? (editingBook.agentId || editingBook.agent || null) : null;
 
         if (editingBook) {
-            const updatedBooks = books.map(b => b.bookId === editingBook.bookId ? { ...b, ...formData, agent: agentValue } : b);
-            setBooks(updatedBooks);
-            if (selectedBook && selectedBook.bookId === editingBook.bookId) {
-                const updated = updatedBooks.find(b => b.bookId === editingBook.bookId);
-                if (updated) setSelectedBook(updated);
+            try {
+                const response: any = await BookService.updateBook(editingBook.bookId, {
+                    ...formData,
+                    contributionStatus: formData.contributionStatus,
+                    agentId: formData.agentId || undefined
+                });
+                const updatedBooks = books.map(b => b.bookId === editingBook.bookId ? { ...b, ...formData, agentId: agents.find(a => a._id === formData.agentId) || agentValue } : b);
+                setBooks(updatedBooks);
+                if (selectedBook && selectedBook.bookId === editingBook.bookId) {
+                    const updated = updatedBooks.find(b => b.bookId === editingBook.bookId);
+                    if (updated) setSelectedBook(updated);
+                }
+                handleCloseModal();
+            } catch (error: any) {
+                console.error("Error updating book:", error);
+                alert(error.response?.data?.message || 'Failed to update book');
             }
-            handleCloseModal();
         } else {
             try {
-                // Remove id from new book payload, rely on backend
                 const response: any = await BookService.createBook({
                     bookNumber: formData.bookNumber,
                     name: formData.name,
                     phone: formData.phone,
                     whatsappNumber: formData.whatsappNumber,
                     address: formData.address,
+                    contributionStatus: formData.contributionStatus,
+                    agentId: formData.agentId || undefined
                 });
-
 
                 handleCloseModal();
                 fetchBooks(currentPage, { searchName, searchPhone, searchBookNo });
@@ -217,12 +243,33 @@ const Book: React.FC = () => {
                         </div>
                         <div className="form-row">
                             <div className="input-group">
+                                <label>Agent</label>
+                                <select value={formData.agentId} onChange={e => setFormData({ ...formData, agentId: e.target.value })}>
+                                    <option value="">No Agent</option>
+                                    {agents.map(agent => (
+                                        <option key={agent._id} value={agent._id}>{agent.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                        <div className="form-row">
+                            <div className="input-group">
                                 <label>WhatsApp Number</label>
                                 <input type="tel" value={formData.whatsappNumber} onChange={e => setFormData({ ...formData, whatsappNumber: e.target.value })} />
                             </div>
                             <div className="input-group">
                                 <label>Address</label>
                                 <input type="text" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} required />
+                            </div>
+                        </div>
+                        <div className="form-row">
+                            <div className="input-group">
+                                <label>Book Status</label>
+                                <select value={formData.contributionStatus} onChange={e => setFormData({ ...formData, contributionStatus: e.target.value })}>
+                                    <option value="Active">Active</option>
+                                    <option value="Discontinued">Discontinued</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
                             </div>
                         </div>
                         <div className="modal-actions">
@@ -295,6 +342,7 @@ const Book: React.FC = () => {
                             <th>Book No.</th>
                             <th>Customer Name</th>
                             <th>Phone</th>
+                            <th>Agent</th>
                             <th>Paid/Total</th>
                             <th>Draw Status</th>
                             <th>Actions</th>
@@ -322,6 +370,9 @@ const Book: React.FC = () => {
                                         </div>
                                     </td>
                                     <td>{book.phone}</td>
+                                    <td>
+                                        {book.agentId ? (typeof book.agentId === 'object' ? (book.agentId as any).name : book.agentId) : '—'}
+                                    </td>
                                     <td>
                                         <div className="progress-cell">
                                             <span className="progress-text">{book?.summary?.paidMonths || 0} / {book?.summary?.totalMonths || 0}</span>
@@ -353,39 +404,39 @@ const Book: React.FC = () => {
                         )}
                     </tbody>
                 </table>
-            </div>
 
-            {totalPages > 1 && (
-                <div className="pagination-controls">
-                    <button
-                        className="btn-pagination"
-                        disabled={currentPage === 1}
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    >
-                        ← Prev
-                    </button>
+                {totalPages > 1 && (
+                    <div className="pagination-controls">
+                        <button
+                            className="btn-pagination"
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        >
+                            ← Prev
+                        </button>
 
-                    <div className="page-numbers">
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                            <button
-                                key={page}
-                                className={`btn-page ${currentPage === page ? 'active' : ''}`}
-                                onClick={() => setCurrentPage(page)}
-                            >
-                                {page}
-                            </button>
-                        ))}
+                        <div className="page-numbers">
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                <button
+                                    key={page}
+                                    className={`btn-page ${currentPage === page ? 'active' : ''}`}
+                                    onClick={() => setCurrentPage(page)}
+                                >
+                                    {page}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button
+                            className="btn-pagination"
+                            disabled={currentPage === totalPages}
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        >
+                            Next →
+                        </button>
                     </div>
-
-                    <button
-                        className="btn-pagination"
-                        disabled={currentPage === totalPages}
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    >
-                        Next →
-                    </button>
-                </div>
-            )}
+                )}
+            </div>
 
             {renderModal(editingBook ? 'Edit Book' : 'Add New Book')}
         </div>
@@ -393,3 +444,4 @@ const Book: React.FC = () => {
 };
 
 export default Book;
+

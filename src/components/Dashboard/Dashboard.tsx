@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './Dashboard.css';
+import DashboardService from '../../services/DashboardService';
 
 // Using simple SVG icons for a beautiful modern aesthetic
 const icons = {
@@ -15,20 +16,59 @@ const icons = {
     tag: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
 };
 
-const dashboardData = [
-    { id: 1, title: 'Active Books', value: '3', icon: icons.book, color: '#10b981', bg: '#ecfdf5' },
-    { id: 2, title: 'Total Books', value: '1,248', icon: icons.library, color: '#3b82f6', bg: '#eff6ff' },
-    { id: 3, title: 'Prizes Claimed Books', value: '156', icon: icons.gift, color: '#f59e0b', bg: '#fffbeb' },
-    { id: 4, title: 'Discontinued Books', value: '156', icon: icons.ban, color: '#ef4444', bg: '#fef2f2' },
-    { id: 5, title: 'Prizes Claimed', value: '156', icon: icons.trophy, color: '#8b5cf6', bg: '#f5f3ff' },
-    { id: 6, title: 'Total Amount', value: '₹15,600', icon: icons.dollar, color: '#14b8a6', bg: '#f0fdfa' },
-    { id: 7, title: 'Collection Amount', value: '₹12,400', icon: icons.wallet, color: '#6366f1', bg: '#eef2ff' },
-    { id: 8, title: 'Upcoming Amount', value: '₹3,200', icon: icons.clock, color: '#f43f5e', bg: '#fff1f2' },
-    { id: 9, title: 'Agent', value: '14', icon: icons.users, color: '#0ea5e9', bg: '#f0f9ff' },
-    { id: 10, title: 'Price', value: '₹100', icon: icons.tag, color: '#84cc16', bg: '#f7fee7' },
-];
-
 const Dashboard: React.FC = () => {
+    const [stats, setStats] = useState<any>({
+        totalBooks: 0,
+        activeBooks: 0,
+        discontinuedBooks: 0,
+        prizesClaimedBooks: 0,
+        totalAgents: 0,
+        totalAmount: 0,
+        collectionAmount: 0,
+        upcomingAmount: 0,
+        discontinuedAmount: 0,
+        price: 0
+    });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDashboardStats = async () => {
+            try {
+                const response = await DashboardService.getStats();
+                if (response.success && response.data) {
+                    setStats(response.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch dashboard stats", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardStats();
+    }, []);
+
+    const dashboardData = [
+        { id: 1, title: 'Active Books', value: `${stats.activeBooks}`, icon: icons.book, color: '#10b981', bg: '#ecfdf5' },
+        { id: 2, title: 'Total Books', value: `${stats.totalBooks}`, icon: icons.library, color: '#3b82f6', bg: '#eff6ff' },
+        { id: 3, title: 'Prizes Claimed Books', value: `${stats.prizesClaimedBooks}`, icon: icons.gift, color: '#f59e0b', bg: '#fffbeb' },
+        { id: 4, title: 'Discontinued Books', value: `${stats.discontinuedBooks}`, icon: icons.ban, color: '#ef4444', bg: '#fef2f2' },
+        { id: 5, title: 'Total Agents', value: `${stats.totalAgents}`, icon: icons.users, color: '#0ea5e9', bg: '#f0f9ff' },
+        { id: 6, title: 'Total Amount', value: `₹${stats.totalAmount.toLocaleString()}`, icon: icons.dollar, color: '#14b8a6', bg: '#f0fdfa' },
+        { id: 7, title: 'Collection Amount', value: `₹${stats.collectionAmount.toLocaleString()}`, icon: icons.wallet, color: '#6366f1', bg: '#eef2ff' },
+        { id: 8, title: 'Upcoming Amount', value: `₹${stats.upcomingAmount.toLocaleString()}`, icon: icons.clock, color: '#f43f5e', bg: '#fff1f2' },
+        { id: 9, title: 'Discontinued Amt', value: `₹${stats.discontinuedAmount.toLocaleString()}`, icon: icons.ban, color: '#9ca3af', bg: '#f3f4f6' },
+        { id: 10, title: 'Price', value: `₹${stats.price}`, icon: icons.tag, color: '#84cc16', bg: '#f7fee7' },
+    ];
+
+    if (loading) {
+        return (
+            <div className="dashboard-container fade-in-up" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                <p>Loading Dashboard...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="dashboard-container fade-in-up">
             <div className="dashboard-header-modern">

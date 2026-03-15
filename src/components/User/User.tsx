@@ -21,9 +21,8 @@ const User: React.FC = () => {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const data = await UserService.getUsers();
-            debugger
-            setUsers(data);
+            const response = await UserService.getUsers();
+            setUsers(response.data || []);
             setError('');
         } catch (err: any) {
             setError('Failed to load users');
@@ -114,12 +113,12 @@ const User: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {users.length === 0 ? (
+                        {users?.length === 0 ? (
                             <tr>
                                 <td colSpan={5} className="empty-state">No users found.</td>
                             </tr>
                         ) : (
-                            users.map(user => (
+                            users?.map(user => (
                                 <tr key={user._id}>
                                     <td>
                                         <div className="user-info-cell">
