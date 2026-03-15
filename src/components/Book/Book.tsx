@@ -15,28 +15,6 @@ interface Payment {
     paidDate?: string;
 }
 
-const mockPayments: Payment[] = [
-    { monthNumber: 1, paid: true, amount: 500, _id: "p1", paidDate: "2026-02-28T13:41:39.051Z" },
-    { monthNumber: 2, paid: true, amount: 500, _id: "p2", paidDate: "2026-02-28T13:42:39.051Z" },
-    { monthNumber: 3, paid: false, amount: 0, _id: "p3" },
-    { monthNumber: 4, paid: false, amount: 0, _id: "p4" },
-    { monthNumber: 5, paid: false, amount: 0, _id: "p5" },
-    { monthNumber: 6, paid: false, amount: 0, _id: "p6" },
-    { monthNumber: 7, paid: false, amount: 0, _id: "p7" },
-    { monthNumber: 8, paid: false, amount: 0, _id: "p8" },
-    { monthNumber: 9, paid: false, amount: 0, _id: "p9" },
-    { monthNumber: 10, paid: false, amount: 0, _id: "p10" },
-];
-
-const mockSummary = {
-    totalMonths: 10,
-    paidMonths: 2,
-    remainingMonths: 8,
-    totalPaidAmount: 1000,
-    remainingAmount: 4000,
-    eligibleForDraw: false
-};
-
 
 const Book: React.FC = () => {
     const [books, setBooks] = useState<BookData[]>([]);
