@@ -19,6 +19,7 @@ const Agent: React.FC = () => {
     const [editingAgent, setEditingAgent] = useState<AgentData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [searchText, setSearchText] = useState('');
 
     const fetchAgents = async () => {
         try {
@@ -106,6 +107,12 @@ const Agent: React.FC = () => {
         }
     };
 
+    const filteredAgents = agents.filter(agent => 
+        agent.name.toLowerCase().includes(searchText.toLowerCase()) || 
+        agent.place.toLowerCase().includes(searchText.toLowerCase()) ||
+        agent.mobileNumber.includes(searchText)
+    );
+
     return (
         <div className="agent-management fade-in-up">
             {loading && <Spinner />}
@@ -113,9 +120,20 @@ const Agent: React.FC = () => {
                 <div>
                     <h2>Agent Management</h2>
                 </div>
-                <button className="btn-primary" onClick={() => handleOpenModal()}>
-                    + Add New Agent
-                </button>
+                <div className="header-controls">
+                    <div className="search-group">
+                        <input 
+                            type="text" 
+                            placeholder="Search agents..." 
+                            className="search-input"
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                        />
+                    </div>
+                    <button className="btn-primary" onClick={() => handleOpenModal()}>
+                        + Add New Agent
+                    </button>
+                </div>
             </div>
 
             {error && <div className="error-message">{error}</div>}
@@ -135,12 +153,12 @@ const Agent: React.FC = () => {
                             <tr>
                                 <td colSpan={4} className="empty-state">Loading agents...</td>
                             </tr>
-                        ) : agents?.length === 0 ? (
+                        ) : filteredAgents?.length === 0 ? (
                             <tr>
-                                <td colSpan={4} className="empty-state">No agents found.</td>
+                                <td colSpan={4} className="empty-state">No agents found matching your search.</td>
                             </tr>
                         ) : (
-                            agents?.map(agent => (
+                            filteredAgents?.map(agent => (
                                 <tr key={agent._id}>
                                     <td>
                                         <div className="agent-info-cell">

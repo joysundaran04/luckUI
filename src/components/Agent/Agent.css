@@ -24,6 +24,48 @@
     font-weight: 700;
 }
 
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.search-group {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 8px 16px;
+    width: 280px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s ease;
+}
+
+.search-group:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    width: 320px;
+}
+
+.search-icon {
+    color: #a0aec0;
+    margin-right: 10px;
+}
+
+.search-input {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 0.95rem;
+    color: #2d3748;
+    background: transparent;
+}
+
+.search-input::placeholder {
+    color: #cbd5e1;
+}
+
 .agent-info-cell {
     display: flex;
     align-items: center;

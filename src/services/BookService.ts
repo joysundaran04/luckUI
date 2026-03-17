@@ -4,7 +4,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const BookService = {
     // Get all books
-    getBooks: async (page: number = 1, limit: number = 10, searchParams: { searchName?: string; searchPhone?: string; searchBookNo?: string; status?: string } = {}) => {
+    getBooks: async (page: number = 1, limit: number = 10, searchParams: { searchName?: string; searchPhone?: string; searchBookNo?: string; status?: string; agentId?: string } = {}) => {
         const response = await axios.get(`${API_URL}/book/books`, {
             params: { page, limit, ...searchParams }
         });

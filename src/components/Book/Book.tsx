@@ -14,6 +14,7 @@ const Book: React.FC = () => {
     const [searchText, setSearchText] = useState('');
     const [searchType, setSearchType] = useState('searchName'); // searchName, searchPhone, searchBookNo
     const [statusFilter, setStatusFilter] = useState(''); // Active, Discontinued, Won, etc.
+    const [agentFilter, setAgentFilter] = useState(''); // agentId
     const [currentPage, setCurrentPage] = useState(1);
     const [expandedBookId, setExpandedBookId] = useState<string | null>(null);
     const [totalPages, setTotalPages] = useState(1);
@@ -22,6 +23,8 @@ const Book: React.FC = () => {
     const [selectedBook, setSelectedBook] = useState<BookData | null>(null);
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
     const [formError, setFormError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [editRefreshKey, setEditRefreshKey] = useState(0);
 
     const [formData, setFormData] = useState({
         bookNumber: '',
@@ -44,10 +47,13 @@ const Book: React.FC = () => {
             if (statusFilter) {
                 params.status = statusFilter;
             }
+            if (agentFilter) {
+                params.agentId = agentFilter;
+            }
             fetchBooks(currentPage, params);
         }, 300);
         return () => clearTimeout(timeoutId);
-    }, [currentPage, searchText, searchType, statusFilter]);
+    }, [currentPage, searchText, searchType, statusFilter, agentFilter]);
 
     useEffect(() => {
         const fetchAgents = async () => {
@@ -63,9 +69,9 @@ const Book: React.FC = () => {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchText, searchType, statusFilter]);
+    }, [searchText, searchType, statusFilter, agentFilter]);
 
-    const fetchBooks = async (page: number = 1, searchParams: { searchName?: string; searchPhone?: string; searchBookNo?: string; status?: string } = {}) => {
+    const fetchBooks = async (page: number = 1, searchParams: { searchName?: string; searchPhone?: string; searchBookNo?: string; status?: string; agentId?: string } = {}) => {
         try {
             setLoading(true);
             const response: any = await BookService.getBooks(page, 7, searchParams);
@@ -118,7 +124,7 @@ const Book: React.FC = () => {
         try {
             setLoading(true);
             await BookService.deleteBook(deleteConfirmId);
-            fetchBooks(currentPage, { [searchType]: searchText, status: statusFilter });
+            fetchBooks(currentPage, { [searchType]: searchText, status: statusFilter, agentId: agentFilter });
             setDeleteConfirmId(null);
         } catch (error: any) {
             console.error("Error deleting book:", error);
@@ -143,6 +149,7 @@ const Book: React.FC = () => {
         setFormError(null);
 
         if (editingBook) {
+            setIsSubmitting(true);
             try {
                 await BookService.updateBook(editingBook.bookId, {
                     ...formData,
@@ -155,10 +162,15 @@ const Book: React.FC = () => {
                     const updated = updatedBooks.find(b => b.bookId === editingBook.bookId);
                     if (updated) setSelectedBook(updated);
                 }
+
                 handleCloseModal();
+                setEditRefreshKey(prev => prev + 1);
+                
             } catch (error: any) {
                 console.error("Error updating book:", error);
                 alert(error.response?.data?.message || 'Failed to update book');
+            } finally {
+                setIsSubmitting(false);
             }
         } else {
             try {
@@ -173,20 +185,22 @@ const Book: React.FC = () => {
                 });
 
                 handleCloseModal();
-                fetchBooks(currentPage, { [searchType]: searchText, status: statusFilter });
+                fetchBooks(currentPage, { [searchType]: searchText, status: statusFilter, agentId: agentFilter });
             } catch (error: any) {
                 console.error("Error creating book:", error);
                 alert(error.response?.data?.message || 'Failed to create book');
+            } finally {
+                setIsSubmitting(false);
             }
         }
     };
 
     const togglePayment = (bookId: string, monthNumber: number) => {
-        fetchBooks(currentPage, { [searchType]: searchText, status: statusFilter });
+        fetchBooks(currentPage, { [searchType]: searchText, status: statusFilter, agentId: agentFilter });
     };
 
     const handlePrizeUpdate = (bookId: string, data: { luckyDrawStatus: string; wonDate?: string; wonMonth?: number; prizeNumber?: string; prizeDistributionStatus?: string }) => {
-        fetchBooks(currentPage, { [searchType]: searchText, status: statusFilter });
+        fetchBooks(currentPage, { [searchType]: searchText, status: statusFilter, agentId: agentFilter });
     };
 
     const toggleAccordion = (bookId: string) => {
@@ -276,7 +290,9 @@ const Book: React.FC = () => {
                         </div>
                         <div className="modal-actions">
                             <button type="button" className="btn-secondary" onClick={handleCloseModal}>Cancel</button>
-                            <button type="submit" className="btn-primary">{editingBook ? 'Save Changes' : 'Create Book'}</button>
+                            <button type="submit" className="btn-primary" disabled={isSubmitting}>
+                                {isSubmitting ? <Spinner /> : (editingBook ? 'Save Changes' : 'Create Book')}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -312,6 +328,7 @@ const Book: React.FC = () => {
             <>
                 <ViewBook
                     book={selectedBook}
+                    refreshKey={editRefreshKey}
                     onBack={() => setSelectedBook(null)}
                     onEdit={(book) => handleOpenModal(book)}
                     onDelete={handleDelete}
@@ -364,6 +381,20 @@ const Book: React.FC = () => {
                             <option value="Active">Active</option>
                             <option value="Discontinued">Discontinued</option>
                             <option value="Won">Won</option>
+                        </select>
+                    </div>
+
+                    <div className="filter-group">
+                        <label className="filter-label">Agent</label>
+                        <select
+                            className="agent-filter-select"
+                            value={agentFilter}
+                            onChange={(e) => setAgentFilter(e.target.value)}
+                        >
+                            <option value="">All Agents</option>
+                            {agents.map(agent => (
+                                <option key={agent._id} value={agent._id}>{agent.name}</option>
+                            ))}
                         </select>
                     </div>
 

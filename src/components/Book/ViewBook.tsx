@@ -34,7 +34,7 @@ export interface BookData {
     wonDate?: string;
     wonMonth?: number;
     prizeNumber?: string;
-    prizeDistributionStatus?: string;
+    priceDistributionStatus?: string;
     agent?: { _id: string; name: string; phone: string; mobileNumber?: string } | null;
     agentId?: { _id: string; name: string } | string | null;
     summary: Summary;
@@ -43,14 +43,15 @@ export interface BookData {
 
 interface ViewBookProps {
     book: any;
+    refreshKey?: number;
     onBack: () => void;
     onEdit: (book: BookData) => void;
     onDelete: (id: string) => void;
     onTogglePayment: (bookId: string, monthNumber: number) => void;
-    onPrizeUpdate: (bookId: string, data: { luckyDrawStatus: string; wonDate?: string; wonMonth?: number; prizeNumber?: string; prizeDistributionStatus?: string }) => void;
+    onPrizeUpdate: (bookId: string, data: { luckyDrawStatus: string; wonDate?: string; wonMonth?: number; prizeNumber?: string; priceDistributionStatus?: string }) => void;
 }
 
-const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, onBack, onEdit, onDelete, onTogglePayment, onPrizeUpdate }) => {
+const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBack, onEdit, onDelete, onTogglePayment, onPrizeUpdate }) => {
     const [bookDetails, setBookDetails] = useState<BookData | null>(null);
     const [loading, setLoading] = useState(true);
     const [showPrizeModal, setShowPrizeModal] = useState(false);
@@ -58,13 +59,23 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, onBack, onEdit, 
     const [wonDate, setWonDate] = useState('');
     const [wonMonth, setWonMonth] = useState<number>(0);
     const [prizeNumber, setPrizeNumber] = useState('');
-    const [prizeDistStatus, setPrizeDistStatus] = useState('Pending');
+    const [prizeDistStatus, setPrizeDistStatus] = useState('Distribution');
     const [confirmPaymentMonth, setConfirmPaymentMonth] = useState<number | null>(null);
+    const [isUpdatingPrize, setIsUpdatingPrize] = useState(false);
+    const [isTogglingPayment, setIsTogglingPayment] = useState(false);
 
     useEffect(() => {
         fetchBookDetails();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialBook.bookId]);
+
+    // Re-fetch when parent signals an edit was completed
+    useEffect(() => {
+        if (refreshKey !== undefined && refreshKey > 0) {
+            fetchBookDetails(false);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [refreshKey]);
 
     const fetchBookDetails = async (showLoading = true) => {
         if (showLoading) setLoading(true);
@@ -86,6 +97,7 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, onBack, onEdit, 
 
     const executeTogglePayment = async () => {
         if (!bookDetails || confirmPaymentMonth === null) return;
+        setIsTogglingPayment(true);
         const monthNumber = confirmPaymentMonth;
         const payment = bookDetails.payments.find(p => p.monthNumber === monthNumber);
 
@@ -109,6 +121,7 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, onBack, onEdit, 
             console.error("Error toggling payment:", error);
             alert(error.response?.data?.message || 'Failed to update payment');
         } finally {
+            setIsTogglingPayment(false);
             setConfirmPaymentMonth(null);
         }
     };
@@ -117,6 +130,7 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, onBack, onEdit, 
         e.preventDefault();
         debugger
         if (!bookDetails) return;
+        setIsUpdatingPrize(true);
         const isWon = prizeStatus === 'Won';
         const dateValue = wonDate ? new Date(wonDate).toISOString() : undefined;
         const updateData = {
@@ -125,13 +139,12 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, onBack, onEdit, 
             wonMonth: isWon ? wonMonth : undefined,
             prizeNumber: prizeNumber || undefined,
             contributionStatus: "Completed",
-            // prizeDistributionStatus: prizeDistStatus,
+            priceDistributionStatus: prizeDistStatus,
         };
         debugger;
         try {
             const response = await BookService.updatePrize(bookDetails.bookId, {
                 ...updateData,
-                priceDistributionStatus: true
             });
             debugger
             if (response.success) {
@@ -142,6 +155,8 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, onBack, onEdit, 
         } catch (error: any) {
             console.error("Error updating prize:", error);
             alert(error.response?.data?.message || 'Failed to update prize');
+        } finally {
+            setIsUpdatingPrize(false);
         }
     };
 
@@ -151,7 +166,7 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, onBack, onEdit, 
         setWonDate(bookDetails.wonDate ? bookDetails.wonDate.split('T')[0] : '');
         setWonMonth(bookDetails.wonMonth || 0);
         setPrizeNumber(bookDetails.prizeNumber || '');
-        setPrizeDistStatus(bookDetails.prizeDistributionStatus || 'Pending');
+        setPrizeDistStatus(bookDetails.priceDistributionStatus || 'Pending');
         setShowPrizeModal(true);
     };
 
@@ -169,7 +184,7 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, onBack, onEdit, 
         <div className="book-details-view fade-in-up">
             <div className="book-header-actions">
                 <button className="btn-secondary back-btn" onClick={onBack}>
-                    ← Back to Books
+                    Back 
                 </button>
                 <div className="details-actions">
                     <button className="btn-prize" onClick={openPrizeModal}>
@@ -191,8 +206,10 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, onBack, onEdit, 
                             </p>
                         </div>
                         <div className="modal-actions" style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
-                            <button type="button" className="btn-secondary" onClick={() => setConfirmPaymentMonth(null)}>Cancel</button>
-                            <button type="button" className="btn-prize-submit" style={{ background: '#4CAF50' }} onClick={executeTogglePayment}>Confirm</button>
+                            <button type="button" className="btn-secondary" onClick={() => setConfirmPaymentMonth(null)} disabled={isTogglingPayment}>Cancel</button>
+                            <button type="button" className="btn-prize-submit" style={{ background: '#4CAF50' }} onClick={executeTogglePayment} disabled={isTogglingPayment}>
+                                {isTogglingPayment ? <Spinner /> : 'Confirm'}
+                            </button>
                         </div>
                     </div>
                 </div>,
@@ -289,7 +306,9 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, onBack, onEdit, 
                             </div>
                             <div className="modal-actions">
                                 <button type="button" className="btn-secondary" onClick={() => setShowPrizeModal(false)}>Cancel</button>
-                                <button type="submit" className="btn-prize-submit">🏆 Update Prize</button>
+                                <button type="submit" className="btn-prize-submit" disabled={isUpdatingPrize}>
+                                    {isUpdatingPrize ? <Spinner /> : '🏆 Update Prize'}
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -368,8 +387,8 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, onBack, onEdit, 
                             <span className="prize-info-icon">📦</span>
                             <div className="prize-info-detail">
                                 <span className="prize-info-label">Distribution Status</span>
-                                <span className={`prize-dist-badge ${(book.prizeDistributionStatus || 'pending').toLowerCase()}`}>
-                                    {book.prizeDistributionStatus || 'Pending'}
+                                <span className={`prize-dist-badge ${(book.priceDistributionStatus || 'pending').toLowerCase()}`}>
+                                  {book.priceDistributionStatus}
                                 </span>
                             </div>
                         </div>
