@@ -18,6 +18,7 @@ const Book: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [expandedBookId, setExpandedBookId] = useState<string | null>(null);
     const [totalPages, setTotalPages] = useState(1);
+    const [totalRecords, setTotalRecords] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingBook, setEditingBook] = useState<BookData | null>(null);
     const [selectedBook, setSelectedBook] = useState<BookData | null>(null);
@@ -81,6 +82,7 @@ const Book: React.FC = () => {
                 bookId: b.bookId || b._id || `temp-id-${index}-${Date.now()}`
             })));
             setTotalPages(response.totalPages || 1);
+            setTotalRecords(response.totalRecords || 0);
 
         } catch (error) {
             console.error("Error fetching books:", error);
@@ -340,12 +342,39 @@ const Book: React.FC = () => {
         );
     }
 
+    const getPageNumbers = () => {
+        const pages = [];
+        if (totalPages <= 5) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            if (currentPage <= 3) {
+                for (let i = 1; i <= 4; i++) pages.push(i);
+                pages.push('...');
+                pages.push(totalPages);
+            } else if (currentPage >= totalPages - 2) {
+                pages.push(1);
+                pages.push('...');
+                for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+            } else {
+                pages.push(1);
+                pages.push('...');
+                for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+                pages.push('...');
+                pages.push(totalPages);
+            }
+        }
+        return pages;
+    };
+
     // List View
     return (
         <div className="book-management fade-in-up">
             <div className="book-header-actions">
-                <div>
-                    <h2>Book Management</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                    <h2 style={{ lineHeight: 1.2 }}>Book Management</h2>
+                    <div className="agent-badge" style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0', fontSize: '12px' }}>
+                        {totalRecords} Total Books
+                    </div>
                 </div>
                 <div className="header-controls">
                     <div className="filter-group">
@@ -557,11 +586,12 @@ const Book: React.FC = () => {
                     </button>
 
                     <div className="page-numbers">
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                        {getPageNumbers().map((page, index) => (
                             <button
-                                key={page}
-                                className={`btn-page ${currentPage === page ? 'active' : ''}`}
-                                onClick={() => setCurrentPage(page)}
+                                key={index}
+                                className={`btn-page ${currentPage === page ? 'active' : ''} ${page === '...' ? 'dots' : ''}`}
+                                onClick={() => typeof page === 'number' ? setCurrentPage(page) : undefined}
+                                disabled={page === '...'}
                             >
                                 {page}
                             </button>
