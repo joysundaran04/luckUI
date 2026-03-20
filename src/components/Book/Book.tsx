@@ -157,7 +157,7 @@ const Book: React.FC = () => {
                     ...formData,
                     contributionStatus: formData.contributionStatus,
                     agentId: formData.agentId || undefined,
-                    luckyDrawStatus: formData.contributionStatus == "Discontinued" ? "Discontinued" : "NotDraw",
+                    luckyDrawStatus: formData.contributionStatus === "Discontinued" ? "Discontinued" : "NotDraw",
                 });
                 const updatedBooks = books.map(b => b.bookId === editingBook.bookId ? { ...b, ...formData, agentId: agents.find(a => a._id === formData.agentId) || agentValue } : b);
                 setBooks(updatedBooks);
