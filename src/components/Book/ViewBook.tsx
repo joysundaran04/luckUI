@@ -6,6 +6,7 @@ import './ViewBook.css';
 
 interface Payment {
     monthNumber: number;
+    monthName?: string;
     paid: boolean;
     amount: number;
     _id: string;
@@ -50,6 +51,19 @@ interface ViewBookProps {
     onTogglePayment: (bookId: string, monthNumber: number) => void;
     onPrizeUpdate: (bookId: string, data: { luckyDrawStatus: string; wonDate?: string; wonMonth?: number; prizeNumber?: string; priceDistributionStatus?: string }) => void;
 }
+
+const wonMonthOptions = [
+    { value: 1, label: 'July 2026' },
+    { value: 2, label: 'August 2026' },
+    { value: 3, label: 'September 2026' },
+    { value: 4, label: 'October 2026' },
+    { value: 5, label: 'November 2026' },
+    { value: 6, label: 'December 2026' },
+    { value: 7, label: 'January 2027' },
+    { value: 8, label: 'February 2027' },
+    { value: 9, label: 'March 2027' },
+    { value: 10, label: 'April 2027' }
+];
 
 const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBack, onEdit, onDelete, onTogglePayment, onPrizeUpdate }) => {
     const [bookDetails, setBookDetails] = useState<BookData | null>(null);
@@ -164,7 +178,7 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
         if (!bookDetails) return;
         setPrizeStatus(bookDetails.luckyDrawStatus || 'NotDraw');
         setWonDate(bookDetails.wonDate ? bookDetails.wonDate.split('T')[0] : '');
-        setWonMonth(bookDetails.wonMonth || 0);
+        setWonMonth(Number(bookDetails.wonMonth) || 0);
         setPrizeNumber(bookDetails.prizeNumber || '');
         setPrizeDistStatus(bookDetails.priceDistributionStatus || 'Pending');
         setShowPrizeModal(true);
@@ -184,7 +198,7 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
         <div className="book-details-view fade-in-up">
             <div className="book-header-actions">
                 <button className="btn-secondary back-btn" onClick={onBack}>
-                    Back 
+                    Back
                 </button>
                 <div className="details-actions">
                     <button className="btn-prize" onClick={openPrizeModal}>
@@ -202,7 +216,7 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
                         <div className="confirm-modal-header" style={{ marginBottom: '20px', textAlign: 'center' }}>
                             <h3>Confirm Update</h3>
                             <p style={{ marginTop: '10px', color: 'var(--text-secondary)' }}>
-                                Are you sure you want to mark Month {confirmPaymentMonth} as <strong>{bookDetails?.payments.find(p => p.monthNumber === confirmPaymentMonth)?.paid ? 'Unpaid' : 'Paid'}</strong>?
+                                Are you sure you want to mark {bookDetails?.payments.find(p => p.monthNumber === confirmPaymentMonth)?.monthName || `Month ${confirmPaymentMonth}`} as <strong>{bookDetails?.payments.find(p => p.monthNumber === confirmPaymentMonth)?.paid ? 'Unpaid' : 'Paid'}</strong>?
                             </p>
                         </div>
                         <div className="modal-actions" style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
@@ -282,17 +296,15 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
                                         <label>Lucky Draw Status</label>
                                         <select value={prizeStatus} onChange={e => setPrizeStatus(e.target.value)}>
                                             <option value="NotDraw">Not Draw</option>
-                                            <option value="Winner">Winner</option>
                                             <option value="Won">Won</option>
-                                            <option value="Loser">Loser</option>
                                         </select>
                                     </div>
                                     <div className="input-group">
                                         <label>Won Month</label>
                                         <select value={wonMonth} onChange={e => setWonMonth(Number(e.target.value))}>
                                             <option value={0}>Select Month</option>
-                                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(m => (
-                                                <option key={m} value={m}>Month {m}</option>
+                                            {wonMonthOptions.map(m => (
+                                                <option key={m.value} value={m.value}>{m.label}</option>
                                             ))}
                                         </select>
                                     </div>
@@ -388,7 +400,7 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
                             <div className="prize-info-detail">
                                 <span className="prize-info-label">Distribution Status</span>
                                 <span className={`prize-dist-badge ${(book.priceDistributionStatus || 'pending').toLowerCase()}`}>
-                                  {book.priceDistributionStatus}
+                                    {book.priceDistributionStatus}
                                 </span>
                             </div>
                         </div>
@@ -396,7 +408,7 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
                             <span className="prize-info-icon">📅</span>
                             <div className="prize-info-detail">
                                 <span className="prize-info-label">Won Month</span>
-                                <span className="prize-info-value">{book.wonMonth ? `Month ${book.wonMonth}` : '—'}</span>
+                                <span className="prize-info-value">{book.wonMonth ? wonMonthOptions.find(o => o.value === Number(book.wonMonth))?.label || `Month ${book.wonMonth}` : '—'}</span>
                             </div>
                         </div>
                         <div className="prize-info-card">
@@ -453,11 +465,11 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
                     <h3 className="section-title">Payment Tracking</h3>
                     <div className="payments-list">
                         {book.payments?.map(payment => {
-                            const isWinnerAndCompleted = (book.luckyDrawStatus === 'Winner' || book.luckyDrawStatus === 'Won') && book.contributionStatus === 'Completed';
+                            const isPaymentDisabled = book.luckyDrawStatus === 'Won' || book.contributionStatus === 'Discontinued' || book.luckyDrawStatus === 'Discontinued';
                             return (
-                                <div key={payment._id || payment.monthNumber} className={`payment-row ${payment.paid ? 'paid' : 'unpaid'} ${isWinnerAndCompleted ? 'disabled' : ''}`}>
+                                <div key={payment._id || payment.monthNumber} className={`payment-row ${payment.paid ? 'paid' : 'unpaid'} ${isPaymentDisabled ? 'disabled' : ''}`}>
                                     <div className="payment-month">
-                                        Month {payment.monthNumber}
+                                        {payment.monthName || `Month ${payment.monthNumber}`}
                                     </div>
                                     <div className="payment-amount">
                                         {payment.paid ? `₹${payment.amount}` : `₹${book.monthlyAmount}`}
@@ -469,8 +481,8 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
                                         <button
                                             className={`toggle-payment-btn ${payment.paid ? 'btn-red' : 'btn-green'}`}
                                             onClick={() => handleTogglePaymentClick(payment.monthNumber)}
-                                            disabled={isWinnerAndCompleted}
-                                            style={{ opacity: isWinnerAndCompleted ? 0.5 : 1, cursor: isWinnerAndCompleted ? 'not-allowed' : 'pointer' }}
+                                            disabled={isPaymentDisabled}
+                                            style={{ opacity: isPaymentDisabled ? 0.5 : 1, cursor: isPaymentDisabled ? 'not-allowed' : 'pointer' }}
                                         >
                                             {payment.paid ? 'Mark Unpaid' : 'Mark Paid'}
                                         </button>

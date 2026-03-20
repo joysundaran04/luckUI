@@ -38,7 +38,7 @@ const Winners: React.FC = () => {
     }, []);
 
     const groupedWinners = winners.reduce((acc, winner) => {
-        const month = winner.wonMonth ? `Month ${winner.wonMonth}` : 'Unknown Month';
+        const month = winner.wonMonth || 'Unknown Month';
         if (!acc[month]) acc[month] = [];
         acc[month].push(winner);
         return acc;

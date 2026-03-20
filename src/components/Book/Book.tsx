@@ -156,7 +156,8 @@ const Book: React.FC = () => {
                 await BookService.updateBook(editingBook.bookId, {
                     ...formData,
                     contributionStatus: formData.contributionStatus,
-                    agentId: formData.agentId || undefined
+                    agentId: formData.agentId || undefined,
+                    luckyDrawStatus: formData.contributionStatus == "Discontinued" ? "Discontinued" : "NotDraw",
                 });
                 const updatedBooks = books.map(b => b.bookId === editingBook.bookId ? { ...b, ...formData, agentId: agents.find(a => a._id === formData.agentId) || agentValue } : b);
                 setBooks(updatedBooks);
@@ -167,7 +168,7 @@ const Book: React.FC = () => {
 
                 handleCloseModal();
                 setEditRefreshKey(prev => prev + 1);
-                
+
             } catch (error: any) {
                 console.error("Error updating book:", error);
                 alert(error.response?.data?.message || 'Failed to update book');
@@ -331,7 +332,14 @@ const Book: React.FC = () => {
                 <ViewBook
                     book={selectedBook}
                     refreshKey={editRefreshKey}
-                    onBack={() => setSelectedBook(null)}
+                    onBack={() => {
+                        setSelectedBook(null);
+                        const params: any = {};
+                        if (searchText) params[searchType] = searchText;
+                        if (statusFilter) params.status = statusFilter;
+                        if (agentFilter) params.agentId = agentFilter;
+                        fetchBooks(currentPage, params);
+                    }}
                     onEdit={(book) => handleOpenModal(book)}
                     onDelete={handleDelete}
                     onTogglePayment={togglePayment}
@@ -407,9 +415,9 @@ const Book: React.FC = () => {
                             onChange={(e) => setStatusFilter(e.target.value)}
                         >
                             <option value="">All Statuses</option>
-                            <option value="Active">Active</option>
+                            <option value="Active">Active ❨𝗡𝗼𝘁𝗗𝗿𝗮𝘄❩</option>
                             <option value="Discontinued">Discontinued</option>
-                            <option value="Won">Won</option>
+                            <option value="Completed">Completed ❨𝗪𝗼𝗻❩</option>
                         </select>
                     </div>
 

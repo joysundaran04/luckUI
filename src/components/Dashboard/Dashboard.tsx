@@ -28,6 +28,10 @@ const Dashboard: React.FC = () => {
         collectionAmount: 0,
         upcomingAmount: 0,
         discontinuedAmount: 0,
+        wonAmount: 0,
+        activeBooksAmount: 0,
+        prizeDistributedBooks: 0,
+        prizeDistributedAmount: 0,
         price: 0
     });
     const [loading, setLoading] = useState(true);
@@ -54,12 +58,15 @@ const Dashboard: React.FC = () => {
         { id: 2, title: 'Total Books', value: `${stats.totalBooks}`, icon: icons.library, color: '#3b82f6', bg: '#eff6ff' },
         { id: 3, title: 'Prizes Claimed Books', value: `${stats.prizesClaimedBooks}`, icon: icons.gift, color: '#f59e0b', bg: '#fffbeb' },
         { id: 4, title: 'Discontinued Books', value: `${stats.discontinuedBooks}`, icon: icons.ban, color: '#ef4444', bg: '#fef2f2' },
-        { id: 5, title: 'Total Agents', value: `${stats.totalAgents}`, icon: icons.users, color: '#0ea5e9', bg: '#f0f9ff' },
-        { id: 6, title: 'Total Amount', value: `₹${stats.totalAmount.toLocaleString()}`, icon: icons.dollar, color: '#14b8a6', bg: '#f0fdfa' },
-        { id: 7, title: 'Collection Amount', value: `₹${stats.collectionAmount.toLocaleString()}`, icon: icons.wallet, color: '#6366f1', bg: '#eef2ff' },
-        { id: 8, title: 'Upcoming Amount', value: `₹${stats.upcomingAmount.toLocaleString()}`, icon: icons.clock, color: '#f43f5e', bg: '#fff1f2' },
-        { id: 9, title: 'Discontinued Amt', value: `₹${stats.discontinuedAmount.toLocaleString()}`, icon: icons.ban, color: '#9ca3af', bg: '#f3f4f6' },
-        { id: 10, title: 'Price', value: `₹${stats.price}`, icon: icons.tag, color: '#84cc16', bg: '#f7fee7' },
+        { id: 5, title: 'Prize Distributed Books', value: `${stats.prizeDistributedBooks || 0}`, icon: icons.gift, color: '#f59e0b', bg: '#fffbeb' },
+        { id: 6, title: 'Total Agents', value: `${stats.totalAgents}`, icon: icons.users, color: '#0ea5e9', bg: '#f0f9ff' },
+        { id: 7, title: 'Total Amount', value: `₹${stats.totalAmount.toLocaleString()}`, icon: icons.dollar, color: '#14b8a6', bg: '#f0fdfa' },
+        { id: 8, title: 'Collection Amount', value: `₹${stats.collectionAmount.toLocaleString()}`, icon: icons.wallet, color: '#6366f1', bg: '#eef2ff' },
+        { id: 9, title: 'Upcoming Amount', value: `₹${stats.upcomingAmount.toLocaleString()}`, icon: icons.clock, color: '#f43f5e', bg: '#fff1f2' },
+        { id: 10, title: 'Discontinued Book Collection Amount', value: `₹${stats.discontinuedAmount.toLocaleString()}`, icon: icons.ban, color: '#9ca3af', bg: '#f3f4f6' },
+        { id: 11, title: 'Prize Won Books Collection Amount', value: `₹${(stats.wonAmount || 0).toLocaleString()}`, icon: icons.tag, color: '#84cc16', bg: '#f7fee7' },
+        { id: 12, title: 'Active Books Collection Amount', value: `₹${(stats.activeBooksAmount || 0).toLocaleString()}`, icon: icons.dollar, color: '#10b981', bg: '#ecfdf5' },
+        { id: 13, title: 'Prize Distributed Collection Amount', value: `₹${(stats.prizeDistributedAmount || 0).toLocaleString()}`, icon: icons.wallet, color: '#f59e0b', bg: '#fffbeb' },
     ];
 
     return (

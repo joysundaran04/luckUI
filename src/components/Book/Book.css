@@ -247,7 +247,8 @@
     border: 1px solid #fde68a;
 }
 
-.draw-badge.loser {
+.draw-badge.loser,
+.draw-badge.discontinued {
     background: #fef2f2;
     color: #ef4444;
     border: 1px solid #fecaca;
