@@ -4,8 +4,10 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const AgentService = {
     // Get all agents
-    getAgents: async () => {
-        const response = await axios.get(`${API_URL}/agent`);
+    getAgents: async (page = 1, limit = 6, search = '') => {
+        const response = await axios.get(`${API_URL}/agent`, {
+            params: { page, limit, search }
+        });
         return response.data;
     },
 

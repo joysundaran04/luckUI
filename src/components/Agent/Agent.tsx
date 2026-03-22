@@ -21,11 +21,15 @@ const Agent: React.FC = () => {
     const [error, setError] = useState('');
     const [searchText, setSearchText] = useState('');
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+
     const fetchAgents = async () => {
         try {
             setLoading(true);
-            const response = await AgentService.getAgents();
+            const response = await AgentService.getAgents(currentPage, 6, searchText);
             setAgents(response.data || []);
+            setTotalPages(response.totalPages || 1);
             setError('');
         } catch (err: any) {
             setError('Failed to load agents');
@@ -35,8 +39,13 @@ const Agent: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchAgents();
-    }, []);
+        // Debounce search text
+        const delayDebounceFn = setTimeout(() => {
+            fetchAgents();
+        }, 500);
+        return () => clearTimeout(delayDebounceFn);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchText, currentPage]);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -107,11 +116,34 @@ const Agent: React.FC = () => {
         }
     };
 
-    const filteredAgents = agents.filter(agent => 
-        agent.name.toLowerCase().includes(searchText.toLowerCase()) || 
-        agent.place.toLowerCase().includes(searchText.toLowerCase()) ||
-        agent.mobileNumber.includes(searchText)
-    );
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchText(e.target.value);
+        setCurrentPage(1); // Reset to page 1 on new search
+    };
+
+    const getPageNumbers = () => {
+        const pages = [];
+        if (totalPages <= 5) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            if (currentPage <= 3) {
+                for (let i = 1; i <= 4; i++) pages.push(i);
+                pages.push('...');
+                pages.push(totalPages);
+            } else if (currentPage >= totalPages - 2) {
+                pages.push(1);
+                pages.push('...');
+                for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
+            } else {
+                pages.push(1);
+                pages.push('...');
+                for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+                pages.push('...');
+                pages.push(totalPages);
+            }
+        }
+        return pages;
+    };
 
     return (
         <div className="agent-management fade-in-up">
@@ -127,7 +159,7 @@ const Agent: React.FC = () => {
                             placeholder="Search agents..." 
                             className="search-input"
                             value={searchText}
-                            onChange={(e) => setSearchText(e.target.value)}
+                            onChange={handleSearchChange}
                         />
                     </div>
                     <button className="btn-primary" onClick={() => handleOpenModal()}>
@@ -153,12 +185,12 @@ const Agent: React.FC = () => {
                             <tr>
                                 <td colSpan={4} className="empty-state">Loading agents...</td>
                             </tr>
-                        ) : filteredAgents?.length === 0 ? (
+                        ) : agents?.length === 0 ? (
                             <tr>
                                 <td colSpan={4} className="empty-state">No agents found matching your search.</td>
                             </tr>
                         ) : (
-                            filteredAgents?.map(agent => (
+                            agents?.map(agent => (
                                 <tr key={agent._id}>
                                     <td>
                                         <div className="agent-info-cell">
@@ -186,6 +218,39 @@ const Agent: React.FC = () => {
                     </tbody>
                 </table>
             </div>
+
+            {totalPages > 1 && (
+                <div className="pagination-controls">
+                    <button
+                        className="btn-pagination"
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    >
+                        ← Prev
+                    </button>
+
+                    <div className="page-numbers">
+                        {getPageNumbers().map((page, index) => (
+                            <button
+                                key={index}
+                                className={`btn-page ${currentPage === page ? 'active' : ''} ${page === '...' ? 'dots' : ''}`}
+                                onClick={() => typeof page === 'number' ? setCurrentPage(page) : undefined}
+                                disabled={page === '...'}
+                            >
+                                {page}
+                            </button>
+                        ))}
+                    </div>
+
+                    <button
+                        className="btn-pagination"
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    >
+                        Next →
+                    </button>
+                </div>
+            )}
 
             {isModalOpen && createPortal(
                 <div className="modal-overlay">
