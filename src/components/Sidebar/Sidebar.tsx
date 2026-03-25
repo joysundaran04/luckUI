@@ -31,6 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, activeItem, setActiveItem, 
         { id: 'dashboard', label: 'Dashboard', icon: icons.dashboard, adminOnly: true },
         { id: 'book', label: 'Books', icon: icons.book, adminOnly: false },
         { id: 'agent', label: 'Agents', icon: icons.agent, adminOnly: false },
+        { id: 'prizes', label: 'Prizes', icon: icons.prizes, adminOnly: false },
         { id: 'users', label: 'Users', icon: icons.users, adminOnly: true },
         { id: 'winners', label: 'Winners', icon: icons.winners, adminOnly: false },
     ];

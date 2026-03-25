@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { createPortal } from 'react-dom';
 import UserService from '../../services/UserService';
 import Spinner from '../Spinner/Spinner';
@@ -80,7 +81,7 @@ const User: React.FC = () => {
             await UserService.deleteUser(deleteUserId);
             await fetchUsers();
         } catch (err: any) {
-            alert(err.response?.data?.message || 'Failed to delete user');
+            toast.error(err.response?.data?.message || 'Failed to delete user');
             setLoading(false);
         } finally {
             setDeleteUserId(null);
@@ -99,7 +100,7 @@ const User: React.FC = () => {
             handleCloseModal();
             await fetchUsers();
         } catch (err: any) {
-            alert(err.response?.data?.message || 'Something went wrong');
+            toast.error(err.response?.data?.message || 'Something went wrong');
             setLoading(false);
         }
     };

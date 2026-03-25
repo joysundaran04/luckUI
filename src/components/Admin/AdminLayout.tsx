@@ -6,6 +6,7 @@ import Book from '../Book/Book';
 import Agent from '../Agent/Agent';
 import Dashboard from '../Dashboard/Dashboard';
 import Winners from '../Winners/Winners';
+import Prize from '../Prize/Prize';
 import Footer from '../Footer/Footer';
 import './AdminLayout.css';
 
@@ -61,6 +62,7 @@ const AdminLayout: React.FC = () => {
                             <Route path="agent" element={<Agent />} />
                             <Route path="book" element={<Book />} />
                             <Route path="winners" element={<Winners />} />
+                            <Route path="prizes" element={<Prize />} />
                             <Route path="/" element={<Navigate to="dashboard" replace />} />
                             <Route path="*" element={
                                 <div className="glass-card blank-slate">

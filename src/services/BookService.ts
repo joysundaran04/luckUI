@@ -35,7 +35,7 @@ const BookService = {
     },
 
     // Update a payment for a specific month
-    togglePayment: async (bookId: string, monthNumber: number, data: { paid: boolean; amount: number }) => {
+    togglePayment: async (bookId: string, monthNumber: number, data: { paid: boolean; amount: number; paidDate?: string }) => {
         const response = await axios.put(`${API_URL}/book/${bookId}/month/${monthNumber}`, data);
         return response.data;
     },
@@ -53,8 +53,10 @@ const BookService = {
     },
 
     // Get all winners
-    getWinners: async () => {
-        const response = await axios.get(`${API_URL}/book/winners`);
+    getWinners: async (page = 1, limit = 10, search = "", monthFilter = "") => {
+        const response = await axios.get(`${API_URL}/book/winners`, {
+            params: { page, limit, search, monthFilter }
+        });
         return response.data;
     },
 };

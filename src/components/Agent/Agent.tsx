@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { createPortal } from 'react-dom';
 import AgentService from '../../services/AgentService';
 import Spinner from '../Spinner/Spinner';
@@ -23,6 +24,11 @@ const Agent: React.FC = () => {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [expandedAgentId, setExpandedAgentId] = useState<string | null>(null);
+
+    const toggleAccordion = (id: string) => {
+        setExpandedAgentId(prev => prev === id ? null : id);
+    };
 
     const fetchAgents = async () => {
         try {
@@ -88,7 +94,7 @@ const Agent: React.FC = () => {
             await AgentService.deleteAgent(deleteAgentId);
             fetchAgents();
         } catch (err: any) {
-            alert(err.response?.data?.message || 'Failed to delete agent');
+            toast.error(err.response?.data?.message || 'Failed to delete agent');
         } finally {
             setLoading(false);
             setDeleteAgentId(null);
@@ -99,7 +105,7 @@ const Agent: React.FC = () => {
         e.preventDefault();
         try {
             if (!/^\d{10}$/.test(formData.mobileNumber)) {
-                alert('Please enter a valid 10-digit mobile number');
+                toast.error('Please enter a valid 10-digit mobile number');
                 return;
             }
             setLoading(true);
@@ -111,7 +117,7 @@ const Agent: React.FC = () => {
             handleCloseModal();
             await fetchAgents();
         } catch (err: any) {
-            alert(err.response?.data?.message || 'Something went wrong');
+            toast.error(err.response?.data?.message || 'Something went wrong');
             setLoading(false);
         }
     };
@@ -170,7 +176,7 @@ const Agent: React.FC = () => {
 
             {error && <div className="error-message">{error}</div>}
 
-            <div className="glass-card table-container">
+            <div className="glass-card table-container desktop-only">
                 <table className="agent-table">
                     <thead>
                         <tr>
@@ -217,6 +223,55 @@ const Agent: React.FC = () => {
                         )}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Mobile View (Accordion Style) */}
+            <div className="mobile-only mobile-book-list">
+                {loading && agents.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '40px' }}><Spinner /></div>
+                ) : agents?.length === 0 ? (
+                    <div className="empty-state" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>No agents found matching your search.</div>
+                ) : (
+                    agents?.map(agent => (
+                        <div
+                            key={agent._id}
+                            className={`book-accordion-item ${expandedAgentId === agent._id ? 'expanded' : ''}`}
+                        >
+                            <div className="accordion-header">
+                                <div className="header-main-info" onClick={() => toggleAccordion(agent._id)}>
+                                    <div className="avatar-small">
+                                        {agent.name ? agent.name.charAt(0).toUpperCase() : '?'}
+                                    </div>
+                                    <div className="name-details">
+                                        <span className="customer-name">{agent.name}</span>
+                                    </div>
+                                </div>
+                                <div className="header-status-info" onClick={(e) => { e.stopPropagation(); toggleAccordion(agent._id); }}>
+                                    <span className="chevron"></span>
+                                </div>
+                            </div>
+
+                            <div className="accordion-content">
+                                <div className="detail-row">
+                                    <span className="label">Place:</span>
+                                    <span className="value">{agent.place}</span>
+                                </div>
+                                <div className="detail-row">
+                                    <span className="label">Mobile No:</span>
+                                    <span className="value">{agent.mobileNumber}</span>
+                                </div>
+                                <div className="accordion-actions">
+                                    <button className="btn-mobile-action edit" onClick={() => handleOpenModal(agent)}>
+                                        Edit
+                                    </button>
+                                    <button className="btn-mobile-action delete" onClick={() => handleDelete(agent._id)}>
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
 
             {totalPages > 1 && (

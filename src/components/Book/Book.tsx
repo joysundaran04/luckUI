@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { createPortal } from 'react-dom';
 import ViewBook from './ViewBook';
 import type { BookData } from './ViewBook';
@@ -59,7 +60,7 @@ const Book: React.FC = () => {
     useEffect(() => {
         const fetchAgents = async () => {
             try {
-                const response = await AgentService.getAgents();
+                const response = await AgentService.getAllAgents();
                 setAgents(response.data || []);
             } catch (err) {
                 console.error("Failed to fetch agents", err);
@@ -130,7 +131,7 @@ const Book: React.FC = () => {
             setDeleteConfirmId(null);
         } catch (error: any) {
             console.error("Error deleting book:", error);
-            alert(error.response?.data?.message || 'Failed to delete book');
+            toast.error(error.response?.data?.message || 'Failed to delete book');
         } finally {
             setLoading(false);
         }
@@ -171,7 +172,7 @@ const Book: React.FC = () => {
 
             } catch (error: any) {
                 console.error("Error updating book:", error);
-                alert(error.response?.data?.message || 'Failed to update book');
+                toast.error(error.response?.data?.message || 'Failed to update book');
             } finally {
                 setIsSubmitting(false);
             }
@@ -191,7 +192,7 @@ const Book: React.FC = () => {
                 fetchBooks(currentPage, { [searchType]: searchText, status: statusFilter, agentId: agentFilter });
             } catch (error: any) {
                 console.error("Error creating book:", error);
-                alert(error.response?.data?.message || 'Failed to create book');
+                toast.error(error.response?.data?.message || 'Failed to create book');
             } finally {
                 setIsSubmitting(false);
             }

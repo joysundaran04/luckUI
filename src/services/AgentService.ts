@@ -11,6 +11,14 @@ const AgentService = {
         return response.data;
     },
 
+    // Get all agents without pagination
+    getAllAgents: async () => {
+        const response = await axios.get(`${API_URL}/agent`, {
+            params: { limit: 0 }
+        });
+        return response.data;
+    },
+
     // Get a single agent by ID
     getAgentById: async (id: string) => {
         const response = await axios.get(`${API_URL}/agent/${id}`);

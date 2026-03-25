@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { createPortal } from 'react-dom';
 import BookService from '../../services/BookService';
 import Spinner from '../Spinner/Spinner';
@@ -77,6 +78,7 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
     const [confirmPaymentMonth, setConfirmPaymentMonth] = useState<number | null>(null);
     const [isUpdatingPrize, setIsUpdatingPrize] = useState(false);
     const [isTogglingPayment, setIsTogglingPayment] = useState(false);
+    const [paymentDate, setPaymentDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
     useEffect(() => {
         fetchBookDetails();
@@ -107,6 +109,7 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
 
     const handleTogglePaymentClick = (monthNumber: number) => {
         setConfirmPaymentMonth(monthNumber);
+        setPaymentDate(new Date().toISOString().split('T')[0]);
     };
 
     const executeTogglePayment = async () => {
@@ -125,7 +128,8 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
         try {
             const response = await BookService.togglePayment(bookDetails.bookId, monthNumber, {
                 paid: isNowPaid,
-                amount: isNowPaid ? bookDetails.monthlyAmount : 0
+                amount: isNowPaid ? bookDetails.monthlyAmount : 0,
+                paidDate: isNowPaid ? paymentDate : undefined
             });
             if (response.success) {
                 await fetchBookDetails(false);
@@ -133,12 +137,14 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
             }
         } catch (error: any) {
             console.error("Error toggling payment:", error);
-            alert(error.response?.data?.message || 'Failed to update payment');
+            toast.error(error.response?.data?.message || 'Failed to update payment');
         } finally {
             setIsTogglingPayment(false);
             setConfirmPaymentMonth(null);
         }
     };
+
+ 
 
     const handlePrizeSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -155,12 +161,10 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
             contributionStatus: "Completed",
             priceDistributionStatus: prizeDistStatus,
         };
-        debugger;
         try {
             const response = await BookService.updatePrize(bookDetails.bookId, {
                 ...updateData,
             });
-            debugger
             if (response.success) {
                 await fetchBookDetails(false);
                 onPrizeUpdate(bookDetails.bookId, updateData);
@@ -168,7 +172,7 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
             }
         } catch (error: any) {
             console.error("Error updating prize:", error);
-            alert(error.response?.data?.message || 'Failed to update prize');
+            toast.error(error.response?.data?.message || 'Failed to update prize');
         } finally {
             setIsUpdatingPrize(false);
         }
@@ -218,6 +222,17 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
                             <p style={{ marginTop: '10px', color: 'var(--text-secondary)' }}>
                                 Are you sure you want to mark {bookDetails?.payments.find(p => p.monthNumber === confirmPaymentMonth)?.monthName || `Month ${confirmPaymentMonth}`} as <strong>{bookDetails?.payments.find(p => p.monthNumber === confirmPaymentMonth)?.paid ? 'Unpaid' : 'Paid'}</strong>?
                             </p>
+                            {!bookDetails?.payments.find(p => p.monthNumber === confirmPaymentMonth)?.paid && (
+                                <div style={{ marginTop: '15px', textAlign: 'left' }}>
+                                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 500 }}>Payment Date:</label>
+                                    <input 
+                                        type="date" 
+                                        value={paymentDate} 
+                                        onChange={(e) => setPaymentDate(e.target.value)}
+                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#f8fafc' }}
+                                    />
+                                </div>
+                            )}
                         </div>
                         <div className="modal-actions" style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
                             <button type="button" className="btn-secondary" onClick={() => setConfirmPaymentMonth(null)} disabled={isTogglingPayment}>Cancel</button>
@@ -284,10 +299,9 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
                                     <div className="input-group">
                                         <label>Distribution Status</label>
                                         <select value={prizeDistStatus} onChange={e => setPrizeDistStatus(e.target.value)}>
-                                            <option value="Pending">Pending</option>
                                             <option value="Distributed">Distributed</option>
                                             <option value="Claimed">Claimed</option>
-                                            <option value="Unclaimed">Unclaimed</option>
+                                            <option value="NotClaimed">Not Claimed</option>
                                         </select>
                                     </div>
                                 </div>
@@ -475,7 +489,7 @@ const ViewBook: React.FC<ViewBookProps> = ({ book: initialBook, refreshKey, onBa
                                         {payment.paid ? `₹${payment.amount}` : `₹${book.monthlyAmount}`}
                                     </div>
                                     <div className="payment-date">
-                                        {payment.paid && payment.paidDate ? new Date(payment.paidDate).toLocaleString() : 'Pending'}
+                                        {payment.paid && payment.paidDate ? new Date(payment.paidDate).toLocaleDateString() : 'Pending'}
                                     </div>
                                     <div className="payment-action">
                                         <button
